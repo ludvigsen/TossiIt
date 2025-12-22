@@ -29,7 +29,7 @@ export const generateDailySummary = async (userId: string) => {
       ${events.map(e => `- ${e.title} at ${e.start_time}`).join('\n')}
       
       Recent Notes/Dumps (Last 24h):
-      ${dumps.map(d => `- [${d.source_type}] ${d.content_text}`).join('\n')}
+      ${dumps.map(d => `- [${d.source_type}] ${d.content_text || '(Image/Audio Content)'}`).join('\n')}
       
       Output a concise, friendly summary of what to expect today and any key reminders from notes.
     `;

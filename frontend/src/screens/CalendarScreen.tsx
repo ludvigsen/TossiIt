@@ -30,7 +30,10 @@ export default function CalendarScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.card}>
       <Text style={styles.title}>{item.title}</Text>
-      <Text>{new Date(item.start_time).toLocaleString()} - {new Date(item.end_time).toLocaleTimeString()}</Text>
+      <Text>
+        {new Date(item.start_time).toLocaleString()}
+        {item.end_time ? ` - ${new Date(item.end_time).toLocaleTimeString()}` : ''}
+      </Text>
       <Text>Location: {item.location || 'N/A'}</Text>
     </View>
   );

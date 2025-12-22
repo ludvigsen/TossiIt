@@ -77,16 +77,21 @@ export const processRawDump = async (dumpId: string) => {
         let flagReason = null;
         let status = 'pending';
 
-        if (confidence_score < 0.9) flagReason = 'low_confidence';
-        if (conflict) flagReason = 'conflict_detected';
+        // Collect all flag reasons
+        const reasons: string[] = [];
+        if (confidence_score < 0.9) reasons.push('low_confidence');
+        if (conflict) reasons.push('conflict_detected');
+        
         if (missingDate) {
-            flagReason = 'missing_context';
+            reasons.push('missing_context');
             status = 'needs_info'; // Spec says: IF missing_date: Flag as status: 'needs_info'
         }
+        
         if (proposedData.missing_info && proposedData.missing_info.length > 0) {
-             // Append or set if not set
-             flagReason = flagReason ? `${flagReason}, missing_fields` : 'missing_fields';
+             reasons.push('missing_fields');
         }
+        
+        flagReason = reasons.length > 0 ? reasons.join(', ') : null;
 
         const insertInboxQuery = `
             INSERT INTO smart_inbox (dump_id, user_id, proposed_data, ai_confidence_score, flag_reason, status)

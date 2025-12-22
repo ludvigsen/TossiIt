@@ -29,7 +29,17 @@ export default function InboxScreen() {
 
   const confirmItem = async (item: any) => {
     try {
-        const proposed = item.proposed_data;
+        // Handle proposed_data whether it comes as string or object
+        let proposed = item.proposed_data || {};
+        if (typeof proposed === 'string') {
+            try {
+                proposed = JSON.parse(proposed);
+            } catch (e) {
+                console.error("Failed to parse proposed_data", e);
+                proposed = {};
+            }
+        }
+
         if (!proposed.title || !proposed.start_time) {
             Alert.alert('Missing Info', 'Please edit to add title/time before confirming.');
             return;
@@ -48,7 +58,11 @@ export default function InboxScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-     const data = item.proposed_data || {};
+     let data = item.proposed_data || {};
+     if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch(e) {}
+     }
+     
      return (
          <View style={styles.card}>
              <Text style={styles.title}>{data.title || 'Untitled Dump'}</Text>

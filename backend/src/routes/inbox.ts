@@ -28,24 +28,47 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/:id/confirm', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { user_id, title, start_time, end_time, category, location } = req.body;
+    // user_id from body is untrusted, use header or proper auth token in real app
+    // For now, consistent with existing 'mock' auth, but let's check header match
+    const authUserId = req.headers['x-user-id'] as string; 
     
     // Validate required fields
     if (!title || !start_time) {
         res.status(400).json({ error: 'Missing required fields (title, start_time)' });
         return;
     }
+    
+    if (authUserId && authUserId !== user_id) {
+         res.status(403).json({ error: 'Forbidden: User mismatch' });
+         return;
+    }
 
-    // 1. Mark inbox item as approved
-    await query(`UPDATE smart_inbox SET status = 'approved' WHERE id = $1`, [id]);
+    // 1. Get the inbox item first to verify existence and get dump_id
+    const inboxRes = await query('SELECT dump_id, user_id FROM smart_inbox WHERE id = $1', [id]);
+    if (inboxRes.rows.length === 0) {
+        res.status(404).json({ error: 'Inbox item not found' });
+        return;
+    }
+    
+    // Verify ownership
+    if (inboxRes.rows[0].user_id !== user_id) {
+        res.status(403).json({ error: 'Forbidden: Not your item' });
+        return;
+    }
 
-    // 2. Get the dump_id from the inbox item (optional, for linking)
-    const inboxRes = await query('SELECT dump_id FROM smart_inbox WHERE id = $1', [id]);
-    const dumpId = inboxRes.rows[0]?.dump_id;
+    const dumpId = inboxRes.rows[0].dump_id;
 
-    // 3. Create Google Calendar Event
+    // 2. Create Google Calendar Event FIRST to ensure external sync works
     const eventData = { title, start_time, end_time, location, category };
     const gcalEventId = await createCalendarEvent(user_id, eventData);
+
+    if (!gcalEventId && process.env.NODE_ENV === 'production') {
+         // In production we might want to fail hard, or just log warning
+         // For now, proceeding but noting it could be an issue
+    }
+
+    // 3. Mark inbox item as approved
+    await query(`UPDATE smart_inbox SET status = 'approved' WHERE id = $1`, [id]);
 
     // 4. Insert into Events
     const insertEventQuery = `

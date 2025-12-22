@@ -30,7 +30,7 @@ create table smart_inbox (
   -- AI Proposals
   proposed_data jsonb, -- { title, date, category, etc. }
   ai_confidence_score float, -- 0.0 to 1.0
-  status text default 'pending', -- 'pending', 'approved', 'rejected'
+  status text default 'pending', -- 'pending', 'approved', 'rejected', 'needs_info'
   flag_reason text, -- 'conflict_detected', 'missing_context', 'ambiguous'
   
   created_at timestamp with time zone default now()
