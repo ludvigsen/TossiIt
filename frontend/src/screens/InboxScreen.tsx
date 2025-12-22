@@ -2,17 +2,28 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+const API_URL = 'https://api-kixeywtaia-uc.a.run.app/api';
 
 export default function InboxScreen() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const getAuthHeader = async () => {
+      const tokens = await GoogleSignin.getTokens();
+      const userInfo = GoogleSignin.getCurrentUser();
+      return { 
+          'Authorization': `Bearer ${tokens.accessToken}`,
+          'X-User-Id': userInfo?.user.id 
+      };
+  };
+
   const fetchInbox = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3000/api/inbox', {
-        headers: { 'X-User-Id': 'mock-user-id' }
-      });
+      const headers = await getAuthHeader();
+      const res = await axios.get(`${API_URL}/inbox`, { headers });
       setItems(res.data);
     } catch (error) {
       console.error(error);
@@ -45,10 +56,13 @@ export default function InboxScreen() {
             return;
         }
 
-        await axios.post(`http://localhost:3000/api/inbox/${item.id}/confirm`, {
-            user_id: 'mock-user-id',
+        const userInfo = GoogleSignin.getCurrentUser();
+        const headers = await getAuthHeader();
+
+        await axios.post(`${API_URL}/inbox/${item.id}/confirm`, {
+            user_id: userInfo?.user.id,
             ...proposed
-        });
+        }, { headers });
         Alert.alert('Confirmed', 'Event created!');
         fetchInbox();
     } catch (error) {

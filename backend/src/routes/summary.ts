@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { generateDailySummary } from '../services/summary';
+import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers['x-user-id'] as string;
+    const userId = (req as AuthRequest).user?.id;
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;

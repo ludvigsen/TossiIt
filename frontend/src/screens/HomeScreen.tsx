@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet, Image, Alert, Text, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+const API_URL = 'https://api-kixeywtaia-uc.a.run.app/api';
 
 export default function HomeScreen() {
   const [text, setText] = useState('');
@@ -9,11 +12,23 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
 
+  const getAuthHeader = async () => {
+      const tokens = await GoogleSignin.getTokens();
+      // Or use idToken, depending on backend verification strategy
+      const userInfo = GoogleSignin.getCurrentUser();
+      return { 
+          'Authorization': `Bearer ${tokens.accessToken}`,
+          'X-User-Id': userInfo?.user.id 
+      };
+  };
+
   useEffect(() => {
     // Fetch summary
-    axios.get('http://localhost:3000/api/summary', { headers: { 'X-User-Id': 'mock-user-id' } })
-      .then(res => setSummary(res.data.summary))
-      .catch(err => console.error(err));
+    getAuthHeader().then(headers => {
+        axios.get(`${API_URL}/summary`, { headers })
+        .then(res => setSummary(res.data.summary))
+        .catch(err => console.error(err));
+    });
   }, []);
 
   const pickImage = async () => {
@@ -33,7 +48,9 @@ export default function HomeScreen() {
     
     setLoading(true);
     const formData = new FormData();
-    formData.append('user_id', 'mock-user-id'); 
+    const userInfo = GoogleSignin.getCurrentUser();
+    
+    formData.append('user_id', userInfo?.user.id || 'unknown'); 
     formData.append('source_type', 'app_capture');
     if (text) formData.append('content_text', text);
     
@@ -47,10 +64,12 @@ export default function HomeScreen() {
     }
 
     try {
-      // Use standard localhost if on simulator, or machine IP if on device
-      // For Android Emulator use 10.0.2.2, for iOS Simulator localhost is fine
-      await axios.post('http://localhost:3000/api/dump', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const headers = await getAuthHeader();
+      await axios.post(`${API_URL}/dump`, formData, {
+        headers: { 
+            'Content-Type': 'multipart/form-data',
+            ...headers
+        },
       });
       Alert.alert('Success', 'Dump saved!');
       setText('');

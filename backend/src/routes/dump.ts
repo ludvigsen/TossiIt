@@ -4,18 +4,20 @@ import { storageService } from '../services/storage';
 import { query } from '../db';
 
 import { processRawDump } from '../services/processor';
+import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() }); // Store in memory for processing/upload
 
-router.post('/', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+router.post('/', authenticate, upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
-    const { source_type, content_text, user_id } = req.body;
+    const { source_type, content_text } = req.body;
+    const user_id = (req as AuthRequest).user?.id; // Get from token
     const file = req.file;
 
     // Validate inputs
     if (!user_id) {
-       res.status(400).json({ error: 'user_id is required' });
+       res.status(401).json({ error: 'User ID missing from token' });
        return;
     }
     if (!source_type) {

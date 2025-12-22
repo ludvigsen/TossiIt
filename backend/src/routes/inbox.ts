@@ -1,15 +1,16 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { createCalendarEvent } from '../services/calendar';
+import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 // GET /api/inbox - Fetch pending items
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers['x-user-id'] as string; // Temporary auth
+    const userId = (req as AuthRequest).user?.id;
     if (!userId) {
-        res.status(401).json({ error: 'Unauthorized: Missing X-User-Id' });
+        res.status(401).json({ error: 'Unauthorized: Missing User ID' });
         return;
     }
 
@@ -25,12 +26,16 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // POST /api/inbox/:id/confirm - Confirm/Edit item -> Move to events
-router.post('/:id/confirm', async (req: Request, res: Response) => {
+router.post('/:id/confirm', authenticate, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // user_id from body is untrusted, use header or proper auth token in real app
-    // For now, consistent with existing 'mock' auth, but let's check header match
-    const authUserId = req.headers['x-user-id'] as string; 
+    const { title, start_time, end_time, category, location } = req.body;
+    const user_id = (req as AuthRequest).user?.id;
+
+    if (!user_id) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
     
     // Validate required fields
     if (!title || !start_time) {
@@ -38,11 +43,6 @@ router.post('/:id/confirm', async (req: Request, res: Response) => {
         return;
     }
     
-    if (authUserId && authUserId !== user_id) {
-         res.status(403).json({ error: 'Forbidden: User mismatch' });
-         return;
-    }
-
     // 1. Get the inbox item first to verify existence and get dump_id
     const inboxRes = await query('SELECT dump_id, user_id FROM smart_inbox WHERE id = $1', [id]);
     if (inboxRes.rows.length === 0) {

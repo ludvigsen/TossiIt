@@ -2,17 +2,28 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+const API_URL = 'https://api-kixeywtaia-uc.a.run.app/api';
 
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const getAuthHeader = async () => {
+      const tokens = await GoogleSignin.getTokens();
+      const userInfo = GoogleSignin.getCurrentUser();
+      return { 
+          'Authorization': `Bearer ${tokens.accessToken}`,
+          'X-User-Id': userInfo?.user.id 
+      };
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3000/api/events', {
-        headers: { 'X-User-Id': 'mock-user-id' }
-      });
+      const headers = await getAuthHeader();
+      const res = await axios.get(`${API_URL}/events`, { headers });
       setEvents(res.data);
     } catch (error) {
       console.error(error);

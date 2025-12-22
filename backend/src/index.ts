@@ -6,7 +6,18 @@ import inboxRoutes from './routes/inbox';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import summaryRoutes from './routes/summary';
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
+import { setGlobalOptions } from 'firebase-functions/v2/options';
+import dotenv from 'dotenv';
+import * as admin from 'firebase-admin';
+
+dotenv.config();
+
+// Initialize Firebase Admin (Required for Storage/Auth)
+admin.initializeApp();
+
+// Set global options for Gen 2 functions
+setGlobalOptions({ maxInstances: 10 });
 
 const app = express();
 
@@ -29,10 +40,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/summary', summaryRoutes);
 
-// Export for Firebase Functions
-export const api = functions.https.onRequest(app);
+// Export for Firebase Functions (Gen 2)
+// We declare which secrets this function needs access to.
+// Note: Ensure these secrets are set using `firebase functions:secrets:set SECRET_NAME`
+export const api = onRequest({ 
+    secrets: ["GEMINI_API_KEY", "DATABASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+    region: "us-central1",
+}, app);
 
-// Local Start
+/*
+// Local Start - Commented out to prevent conflict in Cloud Run
 if (require.main === module) {
     const start = async () => {
         try {
@@ -46,4 +63,5 @@ if (require.main === module) {
     };
     start();
 }
+*/
 
