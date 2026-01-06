@@ -3,8 +3,7 @@ import { View, TextInput, Button, StyleSheet, Image, Alert, Text, ScrollView } f
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-const API_URL = 'https://api-kixeywtaia-uc.a.run.app/api';
+import { API_URL } from '../utils/env';
 
 export default function HomeScreen() {
   const [text, setText] = useState('');
@@ -13,11 +12,23 @@ export default function HomeScreen() {
   const [summary, setSummary] = useState<string | null>(null);
 
   const getAuthHeader = async () => {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      let userInfo = await GoogleSignin.getCurrentUser();
+      if (!userInfo) {
+        try {
+          await GoogleSignin.signInSilently();
+        } catch {
+          userInfo = (await GoogleSignin.signIn()) as any;
+        }
+        userInfo = await GoogleSignin.getCurrentUser();
+      }
       const tokens = await GoogleSignin.getTokens();
-      // Or use idToken, depending on backend verification strategy
-      const userInfo = GoogleSignin.getCurrentUser();
+      const bearer = tokens.idToken; // Backend expects ID token
+      if (!bearer) {
+        throw new Error('No idToken available; please sign in again.');
+      }
       return { 
-          'Authorization': `Bearer ${tokens.accessToken}`,
+          'Authorization': `Bearer ${bearer}`,
           'X-User-Id': userInfo?.user.id 
       };
   };
@@ -33,7 +44,7 @@ export default function HomeScreen() {
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       quality: 1,
     });

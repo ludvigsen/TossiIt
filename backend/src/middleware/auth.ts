@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import { config } from '../config';
 
-const client = new OAuth2Client(config.google.clientId);
+const client = new OAuth2Client();
 
 export interface AuthRequest extends Request {
   user?: {
@@ -22,9 +22,9 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   const token = authHeader.split(' ')[1];
 
   try {
+    // Verify token without enforcing a specific audience to allow both Web/Android client IDs
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: config.google.clientId,
     });
     const payload = ticket.getPayload();
 

@@ -5,9 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "serve": "npm run build && firebase emulators:start --only functions",
+    "serve": "npm run build && firebase emulators:start",
     "shell": "npm run build && firebase functions:shell",
-    "start": "npm run build && node dist/index.js",
+    "start": "npm run build && RUN_LOCAL=true node dist/index.js",
+    "start:local": "RUN_LOCAL=true npm run build && RUN_LOCAL=true node dist/index.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },

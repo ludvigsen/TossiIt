@@ -3,18 +3,30 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-nativ
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-const API_URL = 'https://api-kixeywtaia-uc.a.run.app/api';
+import { API_URL } from '../utils/env';
 
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const getAuthHeader = async () => {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      let userInfo = await GoogleSignin.getCurrentUser();
+      if (!userInfo) {
+        try {
+          await GoogleSignin.signInSilently();
+        } catch {
+          userInfo = (await GoogleSignin.signIn()) as any;
+        }
+        userInfo = await GoogleSignin.getCurrentUser();
+      }
       const tokens = await GoogleSignin.getTokens();
-      const userInfo = GoogleSignin.getCurrentUser();
+      const bearer = tokens.idToken;
+      if (!bearer) {
+        throw new Error('No idToken available; please sign in again.');
+      }
       return { 
-          'Authorization': `Bearer ${tokens.accessToken}`,
+          'Authorization': `Bearer ${bearer}`,
           'X-User-Id': userInfo?.user.id 
       };
   };

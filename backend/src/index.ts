@@ -43,18 +43,19 @@ app.use('/api/summary', summaryRoutes);
 // Export for Firebase Functions (Gen 2)
 // We declare which secrets this function needs access to.
 // Note: Ensure these secrets are set using `firebase functions:secrets:set SECRET_NAME`
+// invoker: 'public' allows unauthenticated calls (needed for auth/sync-token)
 export const api = onRequest({ 
     secrets: ["GEMINI_API_KEY", "DATABASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
     region: "us-central1",
+    invoker: "public",
 }, app);
 
-/*
-// Local Start - Commented out to prevent conflict in Cloud Run
-if (require.main === module) {
+// Local Start (for direct node/ts-node, not Cloud Run)
+if (process.env.RUN_LOCAL === 'true' || require.main === module) {
     const start = async () => {
         try {
             app.listen(config.port, () => {
-                console.log(`Server is running on port ${config.port}`);
+                console.log(`(local) Server is running on port ${config.port}`);
             });
         } catch (error) {
             console.error('Failed to start server:', error);
@@ -63,5 +64,4 @@ if (require.main === module) {
     };
     start();
 }
-*/
 

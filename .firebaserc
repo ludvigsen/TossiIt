@@ -1,6 +1,7 @@
 {
   "projects": {
-    "production": "tossit-3cd49"
+    "production": "tossit-3cd49",
+    "default": "tossit-3cd49"
   },
   "targets": {},
   "etags": {}
