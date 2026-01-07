@@ -11,13 +11,13 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		C80AD8F3122247FAB929D6F4 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF217856CF94972AF2A60F8 /* ShareViewController.swift */; };
-		8CF13EF247454776AD08E22E /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3AB457159EEB4CEE98681122 /* MainInterface.storyboard */; };
-		081317299422451093DC1B84 /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = 12891CBAEF784F4991C352B8 /* ShareExtensionPreprocessor.js */; };
-		514C69924A24454F819BE670 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A6B71A1DAF6B40E190908133 /* PrivacyInfo.xcprivacy */; };
-		8F637C0EF1424DA3AD8F75EC /* ShareExtension-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F574420B1A274CA7829D9D3F /* ShareExtension-Info.plist */; };
-		7087FA137E804A66943CA43E /* ShareExtension.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 4324D5CB2B234D658380D837 /* ShareExtension.entitlements */; };
-		0FC13E54B39847CFB8B2953A /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = C345EC7DD72942958EA40D28 /* ShareExtension.appex */; };
+		C69D0C4DF5584A728E4BAF4E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D958B7B7BC3C4F3697267980 /* ShareViewController.swift */; };
+		EC59FAFB24924B879B3DB23A /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84378499FA254687B7B7AC02 /* MainInterface.storyboard */; };
+		C2D41EC46B8B4B17AA21637B /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = 329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */; };
+		6BC75D4E86F04E8687BBA757 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */; };
+		B1ECD87F8BB54AE9A41C5F2D /* ShareExtension-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9933EA74FD84320B6E14299 /* ShareExtension-Info.plist */; };
+		AF213902EB4C4B6FA119AE56 /* ShareExtension.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 2882AB70E8AA4C65AC160AC3 /* ShareExtension.entitlements */; };
+		EB283F5B3852400AB1BF5CBE /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = B2D0EE43023248CA81C822D3 /* ShareExtension.appex */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,13 +29,13 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = TossIt/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* TossIt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "TossIt-Bridging-Header.h"; path = "TossIt/TossIt-Bridging-Header.h"; sourceTree = "<group>"; };
-		3EF217856CF94972AF2A60F8 /* ShareViewController.swift */ = {isa = PBXFileReference; name = "ShareViewController.swift"; path = "ShareViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		3AB457159EEB4CEE98681122 /* MainInterface.storyboard */ = {isa = PBXFileReference; name = "MainInterface.storyboard"; path = "MainInterface.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		12891CBAEF784F4991C352B8 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; name = "ShareExtensionPreprocessor.js"; path = "ShareExtensionPreprocessor.js"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		A6B71A1DAF6B40E190908133 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; name = "PrivacyInfo.xcprivacy"; path = "PrivacyInfo.xcprivacy"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		F574420B1A274CA7829D9D3F /* ShareExtension-Info.plist */ = {isa = PBXFileReference; name = "ShareExtension-Info.plist"; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; explicitFileType = undefined; includeInIndex = 0; };
-		4324D5CB2B234D658380D837 /* ShareExtension.entitlements */ = {isa = PBXFileReference; name = "ShareExtension.entitlements"; path = "ShareExtension.entitlements"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		C345EC7DD72942958EA40D28 /* ShareExtension.appex */ = {isa = PBXFileReference; name = "ShareExtension.appex"; path = "ShareExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; fileEncoding = undefined; lastKnownFileType = undefined; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
+		D958B7B7BC3C4F3697267980 /* ShareViewController.swift */ = {isa = PBXFileReference; name = "ShareViewController.swift"; path = "ShareViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		84378499FA254687B7B7AC02 /* MainInterface.storyboard */ = {isa = PBXFileReference; name = "MainInterface.storyboard"; path = "MainInterface.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; name = "ShareExtensionPreprocessor.js"; path = "ShareExtensionPreprocessor.js"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; name = "PrivacyInfo.xcprivacy"; path = "PrivacyInfo.xcprivacy"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E9933EA74FD84320B6E14299 /* ShareExtension-Info.plist */ = {isa = PBXFileReference; name = "ShareExtension-Info.plist"; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; explicitFileType = undefined; includeInIndex = 0; };
+		2882AB70E8AA4C65AC160AC3 /* ShareExtension.entitlements */ = {isa = PBXFileReference; name = "ShareExtension.entitlements"; path = "ShareExtension.entitlements"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		B2D0EE43023248CA81C822D3 /* ShareExtension.appex */ = {isa = PBXFileReference; name = "ShareExtension.appex"; path = "ShareExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; fileEncoding = undefined; lastKnownFileType = undefined; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,7 +46,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		487974A0EAA34B3F88DBF40A /* Frameworks */ = {
+		8BE43AA3376E4F93BC025EFD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -91,7 +91,7 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				A23D6033E4204F27A8E93998 /* ShareExtension */,
+				C6F05813F379418787244DE4 /* ShareExtension */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -102,7 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* TossIt.app */,
-				C345EC7DD72942958EA40D28 /* ShareExtension.appex */,
+				B2D0EE43023248CA81C822D3 /* ShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,15 +116,15 @@
 			path = TossIt/Supporting;
 			sourceTree = "<group>";
 		};
-		A23D6033E4204F27A8E93998 /* ShareExtension */ = {
+		C6F05813F379418787244DE4 /* ShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				3EF217856CF94972AF2A60F8 /* ShareViewController.swift */,
-				3AB457159EEB4CEE98681122 /* MainInterface.storyboard */,
-				12891CBAEF784F4991C352B8 /* ShareExtensionPreprocessor.js */,
-				A6B71A1DAF6B40E190908133 /* PrivacyInfo.xcprivacy */,
-				F574420B1A274CA7829D9D3F /* ShareExtension-Info.plist */,
-				4324D5CB2B234D658380D837 /* ShareExtension.entitlements */,
+				D958B7B7BC3C4F3697267980 /* ShareViewController.swift */,
+				84378499FA254687B7B7AC02 /* MainInterface.storyboard */,
+				329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */,
+				54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */,
+				E9933EA74FD84320B6E14299 /* ShareExtension-Info.plist */,
+				2882AB70E8AA4C65AC160AC3 /* ShareExtension.entitlements */,
 			);
 			name = ShareExtension;
 			path = ShareExtension;
@@ -143,29 +143,29 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				7631301E6BCE4D86AF582D3E /* Copy Files */,
+				BF64393F9D6B407E92ED799A /* Copy Files */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				BB1982AF7D9348B59E1890D2 /* PBXTargetDependency */,
+				298C9944926A409AB3359D41 /* PBXTargetDependency */,
 			);
 			name = TossIt;
 			productName = TossIt;
 			productReference = 13B07F961A680F5B00A75B9A /* TossIt.app */;
 			productType = "com.apple.product-type.application";
 		};
-		140CFD29786F4A51A3D0A176 /* "ShareExtension" */ = {
+		72734492C97C4280A56207D2 /* "ShareExtension" */ = {
 			isa = PBXNativeTarget;
 			name = "ShareExtension";
 			productName = "ShareExtension";
-			productReference = C345EC7DD72942958EA40D28;
+			productReference = B2D0EE43023248CA81C822D3;
 			productType = "com.apple.product-type.app-extension";
-			buildConfigurationList = 8BB90493BBA9467090C3764B;
+			buildConfigurationList = C6E76A8735C1493C920C4B28;
 			buildPhases = (
-				831CA80A252F45FC9CA8D284 /* Sources */,
-				049C4D8803D04A9DA7B964C4 /* Resources */,
-				487974A0EAA34B3F88DBF40A /* Frameworks */,
+				587A3749A4C54490BAB964D5 /* Sources */,
+				7F9BEE6A88B24A9C972487C6 /* Resources */,
+				8BE43AA3376E4F93BC025EFD /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -199,7 +199,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* TossIt */,
-				140CFD29786F4A51A3D0A176 /* "ShareExtension" */,
+				72734492C97C4280A56207D2 /* "ShareExtension" */,
 			);
 		};
 /* End PBXProject section */
@@ -215,13 +215,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		049C4D8803D04A9DA7B964C4 /* Resources */ = {
+		7F9BEE6A88B24A9C972487C6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8CF13EF247454776AD08E22E /* "MainInterface.storyboard" in Resources */,
-				081317299422451093DC1B84 /* "ShareExtensionPreprocessor.js" in Resources */,
-				514C69924A24454F819BE670 /* "PrivacyInfo.xcprivacy" in Resources */,
+				EC59FAFB24924B879B3DB23A /* "MainInterface.storyboard" in Resources */,
+				C2D41EC46B8B4B17AA21637B /* "ShareExtensionPreprocessor.js" in Resources */,
+				6BC75D4E86F04E8687BBA757 /* "PrivacyInfo.xcprivacy" in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,11 +300,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		831CA80A252F45FC9CA8D284 /* Sources */ = {
+		587A3749A4C54490BAB964D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C80AD8F3122247FAB929D6F4 /* "ShareViewController.swift" in Sources */,
+				C69D0C4DF5584A728E4BAF4E /* "ShareViewController.swift" in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,7 +484,7 @@
 			};
 			name = Release;
 		};
-		BBEE17BE4DDF4BC99F17060C /* Debug */ = {
+		C4B50DDB0C8F490B9F9A3B5E /* Debug */ = {
 			name = Debug;
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -508,7 +508,7 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 		};
-		06ED7335A86F41CAB6DDFCAC /* Release */ = {
+		DB8E8781FA3C404E87E50932 /* Release */ = {
 			name = Release;
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -549,11 +549,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8BB90493BBA9467090C3764B /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+		C6E76A8735C1493C920C4B28 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				BBEE17BE4DDF4BC99F17060C /* Debug */,
-				06ED7335A86F41CAB6DDFCAC /* Release */,
+				C4B50DDB0C8F490B9F9A3B5E /* Debug */,
+				DB8E8781FA3C404E87E50932 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -561,29 +561,29 @@
 /* End XCConfigurationList section */
 
 /* Begin PBXTargetDependency section */
-		BB1982AF7D9348B59E1890D2 /* PBXTargetDependency */ = {
+		298C9944926A409AB3359D41 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 140CFD29786F4A51A3D0A176 /* "ShareExtension" */;
-			targetProxy = 1A4BBFB3BE314AA89BEB7E5E /* PBXContainerItemProxy */;
+			target = 72734492C97C4280A56207D2 /* "ShareExtension" */;
+			targetProxy = F6BF4A6289F5494EAE9CBF48 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXContainerItemProxy section */
-		1A4BBFB3BE314AA89BEB7E5E /* PBXContainerItemProxy */ = {
+		F6BF4A6289F5494EAE9CBF48 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 140CFD29786F4A51A3D0A176;
+			remoteGlobalIDString = 72734492C97C4280A56207D2;
 			remoteInfo = "ShareExtension";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		7631301E6BCE4D86AF582D3E /* Copy Files */ = {
+		BF64393F9D6B407E92ED799A /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0FC13E54B39847CFB8B2953A /* ShareExtension.appex in Copy Files */,
+				EB283F5B3852400AB1BF5CBE /* ShareExtension.appex in Copy Files */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			name = "Copy Files";
