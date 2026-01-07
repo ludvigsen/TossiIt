@@ -1,4 +1,4 @@
-package com.tossit.app
+package ai.tossit.app
 
 import android.app.Application
 import android.content.res.Configuration

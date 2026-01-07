@@ -9,6 +9,7 @@ import { TossItLogo } from '../components/Logo';
 
 export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [todayEvents, setTodayEvents] = useState<any[]>([]);
@@ -30,33 +31,32 @@ export default function DashboardScreen() {
     try {
       const headers = await getAuthHeader();
       
-      // Fetch Summary
-      const summaryRes = await axios.get(`${API_URL}/summary`, { headers });
-      setSummary(summaryRes.data.summary);
+      // Fetch Dashboard Data (Fast)
+      try {
+        const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers });
+        setTodayEvents(dashboardRes.data.events);
+        setTodayTodos(dashboardRes.data.todos);
+      } catch (err) {
+        console.error('Error fetching dashboard items', err);
+      } finally {
+        setLoading(false);
+      }
 
-      // Fetch Events
-      const eventsRes = await axios.get(`${API_URL}/events`, { headers });
-      // Filter for today
-      const today = new Date();
-      const events = eventsRes.data.filter((e: any) => {
-        const eventDate = new Date(e.startTime);
-        return eventDate.toDateString() === today.toDateString();
-      });
-      setTodayEvents(events);
-
-      // Fetch Todos (simulated for now as we don't have a todos endpoint yet, or use existing local if stored)
-      // Assuming we might have a todos endpoint or similar logic. 
-      // For now, I'll fetch from the inbox or similar if available, or just leave empty if no dedicated endpoint
-      // Let's assume we can get them from the same source as TodosScreen
-      // If TodosScreen uses local state, we might need to lift that up or persist it.
-      // For this implementation, I will assume we can fetch them or pass them.
-      // Since TodosScreen uses local state in the previous code, I'll recommend moving to backend or Context.
-      // For now, I'll skip fetching todos from backend if it doesn't exist and focus on Summary + Events
+      // Fetch Summary (Slow)
+      try {
+        const summaryRes = await axios.get(`${API_URL}/summary`, { headers });
+        setSummary(summaryRes.data.summary);
+      } catch (err) {
+        console.error('Error fetching summary', err);
+      } finally {
+        setSummaryLoading(false);
+      }
       
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
-    } finally {
       setLoading(false);
+      setSummaryLoading(false);
+    } finally {
       setRefreshing(false);
     }
   };
@@ -67,6 +67,7 @@ export default function DashboardScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
+    setSummaryLoading(true);
     fetchData();
   };
 
@@ -101,7 +102,7 @@ export default function DashboardScreen() {
         <Text className={`text-lg font-bold mb-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
           ✨ AI Insight
         </Text>
-        {loading ? (
+        {summaryLoading ? (
           <ActivityIndicator size="small" color={isDark ? '#9CA3AF' : '#6B7280'} />
         ) : summary ? (
           <Markdown style={markdownStyles}>
@@ -132,7 +133,7 @@ export default function DashboardScreen() {
             <View 
               key={index} 
               className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
-              style={{ borderLeftColor: '#4CAF50' }} // Default green for now
+              style={{ borderLeftColor: '#4CAF50' }}
             >
               <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {event.title}
@@ -146,6 +147,43 @@ export default function DashboardScreen() {
         ) : (
           <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
             <Text className={`text-gray-400 text-center`}>No events scheduled for today</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Priority Tasks */}
+      <View className="mb-6">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Priority Tasks
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Todos' as never)}>
+            <Text className="text-blue-500 font-semibold">See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loading ? (
+          <ActivityIndicator />
+        ) : todayTodos.length > 0 ? (
+          todayTodos.map((todo, index) => (
+            <View 
+              key={index} 
+              className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
+              style={{ borderLeftColor: '#FFC107' }}
+            >
+              <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {todo.title}
+              </Text>
+              {todo.dueDate && (
+                  <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Due: {new Date(todo.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+              )}
+            </View>
+          ))
+        ) : (
+          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
+            <Text className={`text-gray-400 text-center`}>No tasks due soon</Text>
           </View>
         )}
       </View>

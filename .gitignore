@@ -2,3 +2,4 @@ node_modules/
 .env
 google-services.json
 uploads/
+.DS_Store

@@ -1,13 +1,16 @@
 {
   "name": "tossit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "postinstall": "node scripts/fix-reanimated.js"
+    "postinstall": "node scripts/fix-reanimated.js",
+    "build:release": "./scripts/build-release.sh patch",
+    "build:release:minor": "./scripts/build-release.sh minor",
+    "build:release:major": "./scripts/build-release.sh major"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",

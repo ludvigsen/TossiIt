@@ -2,7 +2,7 @@
   "expo": {
     "name": "TossIt",
     "slug": "tossit",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tossit.app"
+      "bundleIdentifier": "ai.tossit.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tossit.app",
+      "package": "ai.tossit.app",
       "googleServicesFile": "./google-services.json",
       "intentFilters": [
         {

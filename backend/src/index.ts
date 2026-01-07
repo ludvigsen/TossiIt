@@ -10,6 +10,7 @@ import summaryRoutes from './routes/summary';
 import historyRoutes from './routes/history';
 import peopleRoutes from './routes/people';
 import actionableItemsRoutes from './routes/actionable-items';
+import dashboardRoutes from './routes/dashboard';
 import { onRequest } from 'firebase-functions/v2/https';
 import { setGlobalOptions } from 'firebase-functions/v2/options';
 import dotenv from 'dotenv';
@@ -52,6 +53,7 @@ app.use('/api/summary', summaryRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/people', peopleRoutes);
 app.use('/api/actionable-items', actionableItemsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Export for Firebase Functions (Gen 2)
 // We declare which secrets this function needs access to.
