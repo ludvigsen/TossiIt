@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Modal, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert, Modal, TextInput, ScrollView, TouchableOpacity, useColorScheme, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -53,6 +53,8 @@ export default function PeopleScreen() {
     metadata: {} as Record<string, string>,
     notes: '',
   });
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const getAuthHeader = async () => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -596,6 +598,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  deleteButton: {
+    backgroundColor: '#f44336',
   },
   cancelButton: {
     backgroundColor: '#e0e0e0',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Modal, TextInput, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert, Modal, TextInput, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -23,6 +23,8 @@ export default function InboxScreen() {
     category: '',
     location: '',
   });
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const getAuthHeader = async (forceRefresh = false) => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -231,19 +233,29 @@ export default function InboxScreen() {
      const confidence = item.ai_confidence_score != null ? (item.ai_confidence_score * 100).toFixed(0) : 'N/A';
      const dump = item.dump || {};
      const mediaUrl = dump.mediaUrl;
+     const statusColor = getStatusColor(item.status);
      
      return (
-         <View style={styles.card}>
-             <View style={styles.cardHeader}>
-               <View style={styles.statusBadge}>
-                 <Text style={styles.statusIcon}>{getStatusIcon(item.status)}</Text>
-                 <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+        <View 
+          className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-4 rounded-xl`}
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isDark ? 0.25 : 0.15,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+             <View className="flex-row justify-between items-center mb-3">
+               <View className="flex-row items-center gap-1.5">
+                 <Text className="text-base">{getStatusIcon(item.status)}</Text>
+                 <Text className="text-xs font-semibold capitalize" style={{ color: statusColor }}>
                    {item.status.replace('_', ' ').toUpperCase()}
                  </Text>
                </View>
                {item.ai_confidence_score != null && (
-                 <View style={styles.confidenceBadge}>
-                   <Text style={styles.confidenceText}>{confidence}%</Text>
+                 <View className="bg-blue-100 px-2 py-1 rounded-xl">
+                   <Text className="text-xs font-semibold text-blue-700">{confidence}%</Text>
                  </View>
                )}
              </View>
@@ -255,29 +267,41 @@ export default function InboxScreen() {
                      ? mediaUrl 
                      : `${getImageBaseUrl()}${mediaUrl}`
                  }} 
-                 style={styles.image}
+                 className="w-full h-48 rounded-lg mb-3"
                  resizeMode="cover"
                />
              )}
 
              {dump.contentText && (
-               <View style={styles.originalTextBox}>
-                 <Text style={styles.originalTextLabel}>Original Text:</Text>
-                 <Text style={styles.originalText}>{dump.contentText}</Text>
+               <View className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'} p-3 rounded-lg mb-3`}>
+                 <Text className={`text-xs font-semibold mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                   Original Text:
+                 </Text>
+                 <Text className={`text-sm leading-4 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                   {dump.contentText}
+                 </Text>
                </View>
              )}
 
-             <View style={styles.extractedDataBox}>
-               <Text style={styles.extractedTitle}>📋 Extracted Information:</Text>
+             <View className={`${isDark ? 'bg-green-900/30' : 'bg-green-50'} p-3 rounded-lg mb-3`}>
+               <Text className={`text-sm font-semibold mb-2 ${isDark ? 'text-green-400' : 'text-green-800'}`}>
+                 📋 Extracted Information:
+               </Text>
                
-               <View style={styles.fieldRow}>
-                 <Text style={styles.fieldLabel}>Title:</Text>
-                 <Text style={styles.fieldValue}>{data.title || 'Not detected'}</Text>
+               <View className="flex-row mb-1.5 items-center flex-wrap">
+                 <Text className={`text-xs font-semibold w-20 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                   Title:
+                 </Text>
+                 <Text className={`text-xs flex-1 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                   {data.title || 'Not detected'}
+                 </Text>
                </View>
 
-               <View style={styles.fieldRow}>
-                 <Text style={styles.fieldLabel}>Date/Time:</Text>
-                 <Text style={styles.fieldValue}>
+               <View className="flex-row mb-1.5 items-center flex-wrap">
+                 <Text className={`text-xs font-semibold w-20 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                   Date/Time:
+                 </Text>
+                 <Text className={`text-xs flex-1 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
                    {data.start_time 
                      ? new Date(data.start_time).toLocaleString() 
                      : 'Not detected'}
@@ -285,26 +309,34 @@ export default function InboxScreen() {
                </View>
 
                {data.category && (
-                 <View style={styles.fieldRow}>
-                   <Text style={styles.fieldLabel}>Category:</Text>
-                   <View style={styles.categoryBadge}>
-                     <Text style={styles.categoryText}>{data.category}</Text>
+                 <View className="flex-row mb-1.5 items-center flex-wrap">
+                   <Text className={`text-xs font-semibold w-20 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                     Category:
+                   </Text>
+                   <View className="bg-white px-2 py-1 rounded-xl">
+                     <Text className="text-xs font-semibold text-green-800">{data.category}</Text>
                    </View>
                  </View>
                )}
 
                {data.location && (
-                 <View style={styles.fieldRow}>
-                   <Text style={styles.fieldLabel}>Location:</Text>
-                   <Text style={styles.fieldValue}>{data.location}</Text>
+                 <View className="flex-row mb-1.5 items-center flex-wrap">
+                   <Text className={`text-xs font-semibold w-20 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                     Location:
+                   </Text>
+                   <Text className={`text-xs flex-1 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                     {data.location}
+                   </Text>
                  </View>
                )}
              </View>
              
              {detectedPeople.length > 0 && (
-               <View style={styles.peopleSection}>
-                 <Text style={styles.sectionTitle}>👥 People Detected:</Text>
-                 <View style={styles.peopleList}>
+               <View className="mt-3 mb-2">
+                 <Text className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                   👥 People Detected:
+                 </Text>
+                 <View className="flex-row flex-wrap gap-2">
                    {detectedPeople.map((person: any, idx: number) => {
                      const existingPerson = people.find((p: any) => 
                        p.name.toLowerCase() === person.name.toLowerCase()
@@ -312,21 +344,24 @@ export default function InboxScreen() {
                      const isNew = !existingPerson;
                      
                      return (
-                       <View key={idx} style={[styles.personTag, isNew && styles.newPersonTag]}>
-                         <Text style={styles.personText}>
+                       <View 
+                         key={idx} 
+                         className={`${isNew ? 'bg-orange-100 border border-orange-500' : isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2.5 py-1.5 rounded-xl flex-row items-center gap-2`}
+                       >
+                         <Text className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
                            {person.name}
                            {person.relationship && ` (${person.relationship})`}
                          </Text>
                          {isNew && (
                            <TouchableOpacity 
-                             style={styles.addPersonButton}
+                             className="bg-green-500 px-2 py-1 rounded-lg"
                              onPress={() => addPerson({
                                name: person.name,
                                relationship: person.relationship,
                                category: person.category
                              })}
                            >
-                             <Text style={styles.addPersonText}>+ Add</Text>
+                             <Text className="text-xs text-white font-semibold">+ Add</Text>
                            </TouchableOpacity>
                          )}
                        </View>
@@ -337,16 +372,22 @@ export default function InboxScreen() {
              )}
              
              {actionableItems.length > 0 && (
-               <View style={styles.actionItemsSection}>
-                 <Text style={styles.sectionTitle}>✅ Action Items:</Text>
+               <View className="mt-3 mb-2">
+                 <Text className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                   ✅ Action Items:
+                 </Text>
                  {actionableItems.map((action: any, idx: number) => (
-                   <View key={idx} style={styles.actionItem}>
-                     <Text style={styles.actionTitle}>• {action.title}</Text>
+                   <View key={idx} className={`${isDark ? 'bg-orange-900/30' : 'bg-orange-50'} p-2.5 rounded-lg mb-2 border-l-4 border-orange-500`}>
+                     <Text className={`text-sm font-semibold mb-1 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                       • {action.title}
+                     </Text>
                      {action.description && (
-                       <Text style={styles.actionDesc}>{action.description}</Text>
+                       <Text className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                         {action.description}
+                       </Text>
                      )}
                      {action.due_date && (
-                       <Text style={styles.actionDate}>
+                       <Text className={`text-xs font-medium ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
                          Due: {new Date(action.due_date).toLocaleDateString()}
                        </Text>
                      )}
@@ -356,38 +397,44 @@ export default function InboxScreen() {
              )}
              
              {item.flag_reason && (
-               <View style={styles.warningBox}>
-                 <Text style={styles.warningText}>⚠️ {item.flag_reason}</Text>
+               <View className={`${isDark ? 'bg-orange-900/30' : 'bg-orange-50'} p-2.5 rounded-lg mt-2 mb-2`}>
+                 <Text className={`text-sm ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
+                   ⚠️ {item.flag_reason}
+                 </Text>
                </View>
              )}
 
              {data.missing_info && data.missing_info.length > 0 && (
-               <View style={styles.missingInfoBox}>
-                 <Text style={styles.missingInfoTitle}>Missing Information:</Text>
+               <View className={`${isDark ? 'bg-pink-900/30' : 'bg-pink-50'} p-2.5 rounded-lg mt-2 mb-2`}>
+                 <Text className={`text-xs font-semibold mb-1 ${isDark ? 'text-pink-400' : 'text-pink-800'}`}>
+                   Missing Information:
+                 </Text>
                  {data.missing_info.map((info: string, idx: number) => (
-                   <Text key={idx} style={styles.missingInfoText}>• {info}</Text>
+                   <Text key={idx} className={`text-xs mb-0.5 ${isDark ? 'text-pink-300' : 'text-pink-900'}`}>
+                     • {info}
+                   </Text>
                  ))}
                </View>
              )}
              
-             <View style={styles.buttons}>
+             <View className="flex-row mt-3 gap-2">
                 <TouchableOpacity 
-                  style={[styles.button, styles.confirmButton]}
+                  className="bg-green-500 flex-1 py-3 rounded-lg items-center"
                   onPress={() => confirmItem(item)}
                 >
-                  <Text style={styles.buttonText}>✓ Confirm</Text>
+                  <Text className="text-white text-xs font-semibold">✓ Confirm</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.button, styles.editButton]}
+                  className="bg-blue-500 flex-1 py-3 rounded-lg items-center"
                   onPress={() => openEditModal(item)}
                 >
-                  <Text style={styles.buttonText}>✏️ Edit</Text>
+                  <Text className="text-white text-xs font-semibold">✏️ Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.button, styles.dismissButton]}
+                  className="bg-red-500 flex-1 py-3 rounded-lg items-center"
                   onPress={() => dismissItem(item)}
                 >
-                  <Text style={styles.buttonText}>✕ Dismiss</Text>
+                  <Text className="text-white text-xs font-semibold">✕ Dismiss</Text>
                 </TouchableOpacity>
              </View>
          </View>
@@ -395,16 +442,20 @@ export default function InboxScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {loading && items.length === 0 ? (
-        <ActivityIndicator size="large" style={styles.loader} />
+        <ActivityIndicator size="large" className="mt-12" />
       ) : (
           <FlatList 
             data={items}
             renderItem={renderItem}
             keyExtractor={(item: any) => item.id}
-            ListEmptyComponent={<Text style={styles.empty}>Inbox is empty! 📭</Text>}
-            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text className={`text-center mt-12 text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Inbox is empty! 📭
+              </Text>
+            }
+            contentContainerStyle={{ padding: 16 }}
           />
       )}
 
@@ -414,10 +465,12 @@ export default function InboxScreen() {
         transparent={true}
         onRequestClose={closeEditModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-5 w-[90%] max-h-[80%]`}>
             <ScrollView>
-              <Text style={styles.modalTitle}>Edit Event</Text>
+              <Text className={`text-xl font-bold mb-5 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
+                Edit Event
+              </Text>
               
               {editingItem && (() => {
                 let extracted = editingItem.proposed_data || {};
@@ -425,21 +478,23 @@ export default function InboxScreen() {
                   try { extracted = JSON.parse(extracted); } catch(e) {}
                 }
                 return (
-                  <View style={styles.extractedPreview}>
-                    <Text style={styles.extractedPreviewTitle}>AI Extracted:</Text>
-                    <Text style={styles.extractedPreviewText}>
+                  <View className={`${isDark ? 'bg-gray-700' : 'bg-green-50'} p-3 rounded-lg mb-4`}>
+                    <Text className={`text-xs font-semibold mb-2 ${isDark ? 'text-green-400' : 'text-green-800'}`}>
+                      AI Extracted:
+                    </Text>
+                    <Text className={`text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Title: {extracted.title || 'Not detected'}
                     </Text>
-                    <Text style={styles.extractedPreviewText}>
+                    <Text className={`text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Date: {extracted.start_time ? new Date(extracted.start_time).toLocaleString() : 'Not detected'}
                     </Text>
                     {extracted.category && (
-                      <Text style={styles.extractedPreviewText}>
+                      <Text className={`text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         Category: {extracted.category}
                       </Text>
                     )}
                     {extracted.location && (
-                      <Text style={styles.extractedPreviewText}>
+                      <Text className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         Location: {extracted.location}
                       </Text>
                     )}
@@ -447,52 +502,73 @@ export default function InboxScreen() {
                 );
               })()}
               
-              <Text style={styles.label}>Title *</Text>
+              <Text className={`text-sm font-semibold mt-3 mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Title *
+              </Text>
               <TextInput
-                style={styles.input}
+                className={`${isDark ? 'bg-gray-700 text-gray-50 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-lg p-3 text-base`}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={editForm.title}
                 onChangeText={(text) => setEditForm({...editForm, title: text})}
                 placeholder="Event title"
               />
 
-              <Text style={styles.label}>Start Time *</Text>
+              <Text className={`text-sm font-semibold mt-3 mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Start Time *
+              </Text>
               <TextInput
-                style={styles.input}
+                className={`${isDark ? 'bg-gray-700 text-gray-50 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-lg p-3 text-base`}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={editForm.start_time}
                 onChangeText={(text) => setEditForm({...editForm, start_time: text})}
                 placeholder="YYYY-MM-DDTHH:mm"
               />
 
-              <Text style={styles.label}>End Time</Text>
+              <Text className={`text-sm font-semibold mt-3 mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                End Time
+              </Text>
               <TextInput
-                style={styles.input}
+                className={`${isDark ? 'bg-gray-700 text-gray-50 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-lg p-3 text-base`}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={editForm.end_time}
                 onChangeText={(text) => setEditForm({...editForm, end_time: text})}
                 placeholder="YYYY-MM-DDTHH:mm (optional)"
               />
 
-              <Text style={styles.label}>Category</Text>
+              <Text className={`text-sm font-semibold mt-3 mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Category
+              </Text>
               <TextInput
-                style={styles.input}
+                className={`${isDark ? 'bg-gray-700 text-gray-50 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-lg p-3 text-base`}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={editForm.category}
                 onChangeText={(text) => setEditForm({...editForm, category: text})}
                 placeholder="e.g., Work, Personal, Soccer, Family"
               />
 
-              <Text style={styles.label}>Location</Text>
+              <Text className={`text-sm font-semibold mt-3 mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Location
+              </Text>
               <TextInput
-                style={styles.input}
+                className={`${isDark ? 'bg-gray-700 text-gray-50 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-lg p-3 text-base`}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={editForm.location}
                 onChangeText={(text) => setEditForm({...editForm, location: text})}
                 placeholder="Event location (optional)"
               />
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={closeEditModal}>
-                  <Text style={styles.modalButtonText}>Cancel</Text>
+              <View className="flex-row justify-between mt-5 gap-3">
+                <TouchableOpacity 
+                  className={`${isDark ? 'bg-gray-600' : 'bg-gray-300'} flex-1 py-3 rounded-lg items-center`}
+                  onPress={closeEditModal}
+                >
+                  <Text className="text-sm font-semibold text-white">Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalButton, styles.saveButton]} onPress={saveEdit}>
-                  <Text style={styles.modalButtonText}>Save & Confirm</Text>
+                <TouchableOpacity 
+                  className="bg-blue-500 flex-1 py-3 rounded-lg items-center"
+                  onPress={saveEdit}
+                >
+                  <Text className="text-sm font-semibold text-white">Save & Confirm</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -503,325 +579,3 @@ export default function InboxScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f5f5f5',
-  },
-  loader: {
-    marginTop: 50,
-  },
-  listContent: {
-    padding: 16,
-  },
-  card: { 
-    backgroundColor: 'white', 
-    padding: 16, 
-    marginBottom: 16, 
-    borderRadius: 12, 
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusIcon: {
-    fontSize: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  confidenceBadge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  confidenceText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#1976d2',
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: '#f0f0f0',
-  },
-  originalTextBox: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  originalTextLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
-  },
-  originalText: {
-    fontSize: 13,
-    color: '#333',
-    lineHeight: 18,
-  },
-  extractedDataBox: {
-    backgroundColor: '#e8f5e9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  extractedTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2e7d32',
-    marginBottom: 8,
-  },
-  fieldRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-    width: 80,
-  },
-  fieldValue: {
-    fontSize: 13,
-    color: '#333',
-    flex: 1,
-  },
-  categoryBadge: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2e7d32',
-  },
-  peopleSection: {
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#555',
-  },
-  peopleList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  personTag: {
-    backgroundColor: '#f0f4f8',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  newPersonTag: {
-    backgroundColor: '#fff3e0',
-    borderWidth: 1,
-    borderColor: '#ff9800',
-  },
-  personText: {
-    fontSize: 12,
-    color: '#333',
-  },
-  addPersonButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  addPersonText: {
-    fontSize: 11,
-    color: 'white',
-    fontWeight: '600',
-  },
-  actionItemsSection: {
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  actionItem: {
-    backgroundColor: '#fff3e0',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#ff9800',
-  },
-  actionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  actionDesc: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-  },
-  actionDate: {
-    fontSize: 11,
-    color: '#ff9800',
-    fontWeight: '500',
-  },
-  warningBox: {
-    backgroundColor: '#fff3e0',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  warningText: {
-    color: '#ff9800',
-    fontSize: 13,
-  },
-  missingInfoBox: {
-    backgroundColor: '#fce4ec',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  missingInfoTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#c2185b',
-    marginBottom: 4,
-  },
-  missingInfoText: {
-    fontSize: 12,
-    color: '#880e4f',
-    marginBottom: 2,
-  },
-  buttons: { 
-    flexDirection: 'row', 
-    marginTop: 12, 
-    gap: 8,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmButton: {
-    backgroundColor: '#4CAF50',
-  },
-  editButton: {
-    backgroundColor: '#2196F3',
-  },
-  dismissButton: {
-    backgroundColor: '#f44336',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  empty: { 
-    textAlign: 'center', 
-    marginTop: 50, 
-    fontSize: 18, 
-    color: '#888' 
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    width: '90%',
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  extractedPreview: {
-    backgroundColor: '#e8f5e9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  extractedPreviewTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#2e7d32',
-    marginBottom: 8,
-  },
-  extractedPreviewText: {
-    fontSize: 12,
-    color: '#333',
-    marginBottom: 4,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 6,
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#e0e0e0',
-  },
-  saveButton: {
-    backgroundColor: '#2196F3',
-  },
-  modalButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'white',
-  },
-});

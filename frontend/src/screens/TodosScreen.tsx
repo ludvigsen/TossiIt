@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -38,6 +38,8 @@ async function saveScheduledMap(map: Record<string, string>) {
 export default function TodosScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const getAuthHeader = async (forceRefresh = false) => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -176,45 +178,63 @@ export default function TodosScreen() {
       : null;
 
     return (
-      <View key={item.id} style={[styles.card, overdue && styles.overdueCard]}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.title}>{item.title}</Text>
+      <View 
+        key={item.id} 
+        className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl ${overdue ? 'border-l-4 border-red-500' : ''}`}
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.25 : 0.15,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+      >
+        <View className="flex-row items-center justify-between mb-2">
+          <Text className={`text-base font-semibold flex-1 mr-2 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
+            {item.title}
+          </Text>
           {item.category && (
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{item.category}</Text>
+            <View className="bg-blue-100 px-2 py-1 rounded-xl">
+              <Text className="text-xs font-semibold text-blue-700">{item.category}</Text>
             </View>
           )}
         </View>
 
-        {item.description && <Text style={styles.description}>{item.description}</Text>}
+        {item.description && (
+          <Text className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            {item.description}
+          </Text>
+        )}
 
-        <View style={styles.metaRow}>
+        <View className="flex-row items-center justify-between mb-2">
           {dueLabel && (
-            <Text style={[styles.metaText, overdue && styles.overdueText]}>
+            <Text className={`text-sm ${overdue ? 'text-red-500 font-semibold' : isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               🗓 {dueLabel}
             </Text>
           )}
           {item.priority && (
-            <Text style={styles.metaText}>⚑ {item.priority}</Text>
+            <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              ⚑ {item.priority}
+            </Text>
           )}
         </View>
 
         {item.people && item.people.length > 0 && (
-          <View style={styles.peopleRow}>
+          <View className="flex-row flex-wrap gap-2 mb-2">
             {item.people.map((p: any) => (
-              <View key={p.id} style={styles.personChip}>
-                <Text style={styles.personChipText}>{p.name}</Text>
+              <View key={p.id} className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2 py-1 rounded-xl`}>
+                <Text className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{p.name}</Text>
               </View>
             ))}
           </View>
         )}
 
-        <View style={styles.buttonRow}>
+        <View className="flex-row justify-end mt-1">
           <TouchableOpacity
-            style={[styles.button, styles.doneButton]}
+            className="bg-green-500 px-3 py-2 rounded-lg"
             onPress={() => toggleComplete(item, true)}
           >
-            <Text style={styles.buttonText}>Mark Done</Text>
+            <Text className="text-white text-sm font-semibold">Mark Done</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -222,151 +242,24 @@ export default function TodosScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {loading && items.length === 0 ? (
-        <ActivityIndicator size="large" style={styles.loader} />
+        <ActivityIndicator size="large" className="mt-12" />
       ) : items.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>✅</Text>
-          <Text style={styles.emptyText}>No open todos</Text>
-          <Text style={styles.emptySubtext}>
-            When Gemini finds actionable items in your dumps, they will show up here.
+        <View className="flex-1 justify-center items-center p-10">
+          <Text className="text-6xl mb-4">✅</Text>
+          <Text className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            No open todos
+          </Text>
+          <Text className={`text-sm text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+            When Gemini finds actionable items in your notes, they will show up here.
           </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.listContent}>
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
           {items.map(renderItem)}
         </ScrollView>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loader: {
-    marginTop: 50,
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  overdueCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#f44336',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-    marginRight: 8,
-  },
-  categoryBadge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1976d2',
-  },
-  description: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 8,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  metaText: {
-    fontSize: 13,
-    color: '#666',
-  },
-  overdueText: {
-    color: '#f44336',
-    fontWeight: '600',
-  },
-  peopleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  personChip: {
-    backgroundColor: '#f0f4f8',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  personChipText: {
-    fontSize: 12,
-    color: '#333',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 4,
-  },
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  doneButton: {
-    backgroundColor: '#4CAF50',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#aaa',
-    textAlign: 'center',
-  },
-});
-
-

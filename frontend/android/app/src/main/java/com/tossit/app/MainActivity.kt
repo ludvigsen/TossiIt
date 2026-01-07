@@ -1,4 +1,4 @@
-package com.tossit.frontend
+package com.tossit.app
 
 import android.os.Build
 import android.os.Bundle

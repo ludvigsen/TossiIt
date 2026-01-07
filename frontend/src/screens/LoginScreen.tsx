@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Button, StyleSheet, Text, Alert } from "react-native";
+import { View, TouchableOpacity, Text, Alert, useColorScheme } from "react-native";
 import {
   GoogleSignin,
   statusCodes,
@@ -26,6 +26,9 @@ export default function LoginScreen({
 }: {
   onLogin: (token: string, userId: string) => void;
 }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -72,19 +75,16 @@ export default function LoginScreen({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to The Dump</Text>
-      <Button title="Sign in with Google" onPress={signIn} />
+    <View className={`flex-1 justify-center items-center p-5 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+      <Text className={`text-3xl font-bold mb-12 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
+        Welcome to The Dump
+      </Text>
+      <TouchableOpacity
+        onPress={signIn}
+        className={`${isDark ? 'bg-blue-500' : 'bg-blue-600'} py-3 px-8 rounded-lg`}
+      >
+        <Text className="text-white text-lg font-semibold">Sign in with Google</Text>
+      </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: { fontSize: 24, marginBottom: 50, fontWeight: "bold" },
-});

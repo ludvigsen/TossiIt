@@ -31,24 +31,42 @@ export const processRawDump = async (dumpId: string) => {
       },
     });
 
+    // 1.3 Load recent events to help Gemini avoid duplicates
+    const recentEvents = await prisma.event.findMany({
+      where: { userId: dump.userId },
+      orderBy: { startTime: 'desc' },
+      take: 20,
+    });
+
     // 1.5 Generate Embedding and Search Context (for dumps that already have text)
     let context: string[] = [];
     if (dump.contentText) {
-        const embedding = await generateEmbedding(dump.contentText);
+      const embedding = await generateEmbedding(dump.contentText);
         if (embedding.length > 0) {
-            // Update dump with embedding using raw SQL for pgvector
+        // Update dump with embedding using raw SQL for pgvector
             const vectorString = `[${embedding.join(',')}]`;
-            const vectorLiteral = `'${vectorString}'`; // pgvector expects quoted string literal
-            await prisma.$executeRaw`
-                UPDATE raw_dumps 
-                SET embedding = ${Prisma.raw(`${vectorLiteral}::vector`)} 
-                WHERE id = ${dumpId}::uuid
-            `;
+        const vectorLiteral = `'${vectorString}'`; // pgvector expects quoted string literal
+        await prisma.$executeRaw`
+          UPDATE raw_dumps 
+          SET embedding = ${Prisma.raw(`${vectorLiteral}::vector`)} 
+          WHERE id = ${dumpId}::uuid
+        `;
             
-            // Search for context for future dumps
-            const similarDumps = await searchSimilarDumps(embedding);
-            context = similarDumps.map(d => d.content_text);
+        // Search for similar dumps for additional context (user-scoped, excluding current dump)
+        const similarDumps = await searchSimilarDumps(embedding, dump.userId, dumpId);
+        context = similarDumps.map((d) => d.content_text);
         }
+    }
+
+    // Add recent events to context so Gemini can see possible duplicates
+    if (recentEvents.length > 0) {
+      const eventLines = recentEvents.map(
+        (e) =>
+          `EXISTING_EVENT: id=${e.id}, title="${e.title}", start=${e.startTime.toISOString()}, end=${
+            e.endTime ? e.endTime.toISOString() : 'null'
+          }, category=${e.category || ''}`,
+      );
+      context.push(...eventLines);
     }
 
     // 2. Call Gemini (it can also extract full_text from images)
@@ -265,29 +283,54 @@ export const processRawDump = async (dumpId: string) => {
       }
     }
 
-    // Traffic Light Logic - Smarter auto-approval
+    // Traffic Light Logic - Smarter auto-approval with duplicate check
     if ((confidence_score > 0.9 || smartAutoApprove) && !conflict && !missingDate) {
+      // Before auto-creating, check if a very similar event already exists around the same time
+      const startDate = new Date(start_time);
+      const windowStart = new Date(startDate.getTime() - 60 * 60 * 1000); // 1h before
+      const windowEnd = new Date(startDate.getTime() + 60 * 60 * 1000); // 1h after
+
+      const possibleDuplicates = await prisma.event.findMany({
+        where: {
+          userId: dump.userId,
+          startTime: {
+            gte: windowStart,
+            lte: windowEnd,
+          },
+        },
+      });
+
+      const normalizedTitle = (title || '').trim().toLowerCase();
+      const duplicate = possibleDuplicates.find(
+        (e) => e.title.trim().toLowerCase() === normalizedTitle,
+      );
+
+      if (duplicate) {
+        console.log(
+          `Skipping auto-add for dump ${dumpId} - similar event already exists: ${duplicate.id}`,
+        );
+      } else {
         // Auto-Add to Events
         console.log(`Auto-adding event for dump ${dumpId}`);
         
-        // Sync to Google Calendar (optional here or later, spec says "When an event is moved from smart_inbox to events...". But this is auto-add.)
-        // I'll sync it now for auto-add.
+        // Sync to Google Calendar
         const gcalEventId = await createCalendarEvent(dump.userId, proposedData);
-        
-        const event = await prisma.event.create({
+
+        await prisma.event.create({
           data: {
             userId: dump.userId,
             title: title || '',
-            startTime: new Date(start_time),
+            startTime: startDate,
             endTime: end_time ? new Date(end_time) : null,
             category: category || null,
             gcalEventId: gcalEventId,
             originDumpId: dumpId,
             people: {
-              connect: personIds.map(id => ({ id }))
-            }
-          }
+              connect: personIds.map((id) => ({ id })),
+            },
+          },
         });
+      }
 
     } else {
         // Add to Smart Inbox

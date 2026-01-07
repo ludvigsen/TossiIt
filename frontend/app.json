@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "TossIt",
+    "slug": "tossit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tossit.frontend"
+      "bundleIdentifier": "com.tossit.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,13 +23,56 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tossit.frontend",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.tossit.app",
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "data": [
+            {
+              "mimeType": "image/*"
+            },
+            {
+              "mimeType": "text/plain"
+            }
+          ],
+          "category": [
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "SEND_MULTIPLE",
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ],
+          "category": [
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "tossit",
     "plugins": [
+      [
+        "expo-share-intent",
+        {
+          "android": {
+            "disablecategory": false
+          },
+          "ios": {
+            "activationRules": {
+              "NSExtensionActivationSupportsImageWithMaxCount": 1,
+              "NSExtensionActivationSupportsText": true,
+              "NSExtensionActivationSupportsWebURLWithMaxCount": 1
+            }
+          }
+        }
+      ],
       "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",

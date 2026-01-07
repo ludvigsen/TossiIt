@@ -152,7 +152,7 @@ export const processDumpWithGemini = async (
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowDayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][tomorrow.getDay()];
-  
+
   const prompt = `
     You are analyzing input for a busy parent's life planner app. This could be text, an image, or both.
     

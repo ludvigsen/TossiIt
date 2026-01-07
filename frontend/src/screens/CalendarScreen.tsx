@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -8,6 +8,8 @@ import { API_URL } from '../utils/env';
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const getAuthHeader = async (forceRefresh = false) => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -211,46 +213,74 @@ export default function CalendarScreen() {
     };
     
     return (
-      <View style={[styles.card, { borderLeftColor: categoryColor }]}>
-        <View style={styles.cardHeader}>
-          <View style={styles.titleRow}>
-            <Text style={styles.categoryIcon}>{categoryIcon}</Text>
-            <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+      <View 
+        className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-5 mb-4 rounded-xl border-l-4`}
+        style={{ 
+          borderLeftColor: categoryColor,
+          borderLeftWidth: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.25 : 0.15,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+      >
+        <View className="flex-row items-start mb-3">
+          <Text className="text-3xl mr-4">{categoryIcon}</Text>
+          <View className="flex-1">
+            <Text className={`text-xl font-bold mb-3 ${isDark ? 'text-gray-50' : 'text-gray-900'}`} numberOfLines={2}>
+              {item.title}
+            </Text>
+            <View className="flex-row items-center mb-2">
+              <Text className="text-lg mr-2">🕐</Text>
+              <Text className={`text-base font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {formatTimeRange(item.startTime, item.endTime)}
+              </Text>
+            </View>
+            {item.location && (
+              <View className="flex-row items-center">
+                <Text className="text-lg mr-2">📍</Text>
+                <Text className={`text-base flex-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {item.location}
+                </Text>
+              </View>
+            )}
           </View>
+        </View>
+        <View className="flex-row items-center justify-between mt-2 pt-3 border-t" style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}>
           {item.category && (
-            <View style={[styles.categoryBadge, { backgroundColor: categoryColor + '20' }]}>
-              <Text style={[styles.categoryText, { color: categoryColor }]}>
+            <View 
+              className="px-3 py-1.5 rounded-full" 
+              style={{ backgroundColor: categoryColor + '20' }}
+            >
+              <Text className="text-xs font-bold uppercase tracking-wide" style={{ color: categoryColor }}>
                 {item.category}
               </Text>
             </View>
           )}
-          <TouchableOpacity style={styles.deleteChip} onPress={handleDelete}>
-            <Text style={styles.deleteChipText}>Delete</Text>
+          <TouchableOpacity 
+            className="bg-red-500 px-4 py-2 rounded-lg" 
+            onPress={handleDelete}
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 2,
+              elevation: 2,
+            }}
+          >
+            <Text className="text-white text-sm font-bold">Delete</Text>
           </TouchableOpacity>
-        </View>
-        
-        <View style={styles.cardBody}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>🕐</Text>
-            <Text style={styles.infoText}>
-              {formatTimeRange(item.startTime, item.endTime)}
-            </Text>
-          </View>
-          
-          {item.location && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>📍</Text>
-              <Text style={styles.infoText}>{item.location}</Text>
-            </View>
-          )}
         </View>
       </View>
     );
   };
 
   const renderSection = (dateKey: string, events: any[]) => (
-    <View key={dateKey} style={styles.section}>
-      <Text style={styles.sectionTitle}>{dateKey}</Text>
+    <View key={dateKey} className="mb-8">
+      <Text className={`text-2xl font-bold mb-5 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
+        {dateKey}
+      </Text>
       {events.map((event: any) => (
         <View key={event.id}>
           {renderItem({ item: event })}
@@ -260,17 +290,21 @@ export default function CalendarScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {loading && events.length === 0 ? (
-        <ActivityIndicator size="large" style={styles.loader} />
+        <ActivityIndicator size="large" className="mt-12" />
       ) : Object.keys(groupedEvents).length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📅</Text>
-          <Text style={styles.emptyText}>No events scheduled</Text>
-          <Text style={styles.emptySubtext}>Events you confirm from the inbox will appear here</Text>
+        <View className="flex-1 justify-center items-center p-10">
+          <Text className="text-6xl mb-6">📅</Text>
+          <Text className={`text-2xl font-bold mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            No events scheduled
+          </Text>
+          <Text className={`text-base text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+            Events you confirm from the inbox will appear here
+          </Text>
         </View>
       ) : (
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
           {Object.entries(groupedEvents)
             .sort(([a], [b]) => {
               if (a === 'Today') return -1;
@@ -287,123 +321,3 @@ export default function CalendarScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f5f5f5',
-  },
-  loader: {
-    marginTop: 50,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  card: { 
-    backgroundColor: 'white', 
-    padding: 16, 
-    marginBottom: 12, 
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-    gap: 8,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 8,
-  },
-  categoryIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  title: { 
-    fontSize: 18, 
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  cardBody: {
-    gap: 8,
-  },
-  deleteChip: {
-    backgroundColor: '#f44336',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  deleteChipText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: { 
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#aaa',
-    textAlign: 'center',
-  },
-});

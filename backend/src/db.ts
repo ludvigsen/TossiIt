@@ -34,7 +34,7 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-// Test connection on startup
+            // Test connection on startup
 prisma.$connect()
   .then(() => {
     console.log('✓ Database connection successful');

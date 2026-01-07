@@ -9,13 +9,13 @@ async function setupDatabase() {
     console.log('This script will set up the vector extension and verify the schema...\n');
     
     // Enable vector extension (if not already enabled)
-    try {
+      try {
       await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS vector;');
       console.log('✓ Vector extension enabled');
-    } catch (error: any) {
+      } catch (error: any) {
       if (error.code === '42704') {
-        console.log('⚠️  Vector extension not available. If using Supabase, enable pgvector in Dashboard > Database > Extensions');
-      } else {
+          console.log('⚠️  Vector extension not available. If using Supabase, enable pgvector in Dashboard > Database > Extensions');
+        } else {
         console.log('⚠️  Could not enable vector extension:', error.message);
       }
     }
