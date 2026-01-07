@@ -3,6 +3,8 @@
 // Android emulator uses 10.0.2.2 for host machine
 import { Platform } from 'react-native';
 
+const productionUrl = 'https://api-kixeywtaia-uc.a.run.app/api';
+
 const fallback = Platform.select({
   android: 'http://10.0.2.2:3000/api',
   ios: 'http://localhost:3000/api',
@@ -10,6 +12,8 @@ const fallback = Platform.select({
 });
 
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL?.trim() || fallback!;
+  process.env.EXPO_PUBLIC_API_URL?.trim() ||
+  // @ts-ignore
+  (!__DEV__ ? productionUrl : fallback!);
 
 
