@@ -1,5 +1,3 @@
-import { query } from '../db';
-
 export const checkCalendarConflicts = async (userId: string, startTime: string, endTime: string): Promise<boolean> => {
   // 1. Get user's Google Refresh Token
   // const userRes = await query('SELECT google_refresh_token FROM users WHERE id = $1', [userId]);

@@ -5,6 +5,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import axios from "axios";
+import { API_URL } from "../utils/env";
 
 // Replace with your Web Client ID from Google Cloud Console
 // Use the Web client from google-services.json (client_type: 3)
@@ -19,8 +20,6 @@ GoogleSignin.configure({
     "https://www.googleapis.com/auth/gmail.readonly",
   ],
 });
-
-const API_URL = "https://api-kixeywtaia-uc.a.run.app/api";
 
 export default function LoginScreen({
   onLogin,

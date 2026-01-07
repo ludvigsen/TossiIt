@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { query } from '../db';
+import { prisma } from '../db';
 import { config } from '../config';
 
 const router = Router();
@@ -30,15 +30,15 @@ router.post('/sync-token', async (req: Request, res: Response) => {
 
     // Upsert user
     try {
-      const upsertQuery = `
-        INSERT INTO users (email, google_refresh_token)
-        VALUES ($1, $2)
-        ON CONFLICT (email) 
-        DO UPDATE SET google_refresh_token = $2
-        RETURNING *;
-      `;
-      const result = await query(upsertQuery, [email, tokenToStore]);
-      res.json(result.rows[0]);
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: { googleRefreshToken: tokenToStore },
+        create: {
+          email,
+          googleRefreshToken: tokenToStore
+        }
+      });
+      res.json(user);
     } catch (dbError) {
       console.error('DB error syncing token, returning skip:', dbError);
       res.status(200).json({ status: 'skipped_db_error', error: 'DB unavailable, token not persisted' });

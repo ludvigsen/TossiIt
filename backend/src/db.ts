@@ -1,32 +1,30 @@
-import { Pool } from 'pg';
+import { PrismaClient } from '@prisma/client';
 import { config } from './config';
 
-const isProduction = process.env.NODE_ENV === 'production';
+// PrismaClient is attached to the `global` object in development to prevent
+// exhausting your database connection limit.
+// Learn more: https://pris.ly/d/help/nextjs-best-practices
 
-let pool: Pool;
-
-if (config.databaseUrl) {
-    pool = new Pool({
-        connectionString: config.databaseUrl,
-        max: isProduction ? 1 : 10,
-        ssl: isProduction && !config.databaseUrl?.includes('localhost') ? { rejectUnauthorized: false } : false,
-    });
-} else {
-    console.warn("DATABASE_URL is missing. Database features will fail.");
-    // Create a dummy pool or handle undefined in query
-}
-
-export const query = (text: string, params?: any[]) => {
-    if (!pool) throw new Error("Database not configured (DATABASE_URL missing)");
-    return pool.query(text, params);
-};
-export const getClient = () => {
-    if (!pool) throw new Error("Database not configured (DATABASE_URL missing)");
-    return pool.connect();
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-export default {
-  query,
-  getClient,
-};
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    datasourceUrl: config.databaseUrl,
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
 
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Test connection on startup
+prisma.$connect()
+  .then(() => {
+    console.log('✓ Database connection successful');
+  })
+  .catch((err) => {
+    console.error('✗ Database connection failed:', err.message);
+  });
+
+export default prisma;

@@ -8,7 +8,13 @@
     "serve": "npm run build && firebase emulators:start",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run build && RUN_LOCAL=true node dist/index.js",
-    "start:local": "RUN_LOCAL=true npm run build && RUN_LOCAL=true node dist/index.js",
+    "start:local": "npm run build && RUN_LOCAL=true node dist/index.js",
+    "setup-db": "npm run build && node dist/scripts/setup-db.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:push": "prisma db push",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
@@ -21,12 +27,14 @@
   "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^7.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.2",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
+    "prisma": "^7.2.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Alert, Text, ScrollView } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Image, Alert, Text, ScrollView, Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
 
-  const getAuthHeader = async () => {
+  const getAuthHeader = async (forceRefresh = false) => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       let userInfo = await GoogleSignin.getCurrentUser();
       if (!userInfo) {
@@ -22,7 +22,8 @@ export default function HomeScreen() {
         }
         userInfo = await GoogleSignin.getCurrentUser();
       }
-      const tokens = await GoogleSignin.getTokens();
+      // Force refresh token if requested or if token might be expired
+      const tokens = await GoogleSignin.getTokens(forceRefresh ? { forceRefresh: true } : undefined);
       const bearer = tokens.idToken; // Backend expects ID token
       if (!bearer) {
         throw new Error('No idToken available; please sign in again.');
@@ -38,19 +39,65 @@ export default function HomeScreen() {
     getAuthHeader().then(headers => {
         axios.get(`${API_URL}/summary`, { headers })
         .then(res => setSummary(res.data.summary))
-        .catch(err => console.error(err));
+        .catch(async (err) => {
+          // If 401, try with refreshed token
+          if (err?.response?.status === 401) {
+            try {
+              const refreshedHeaders = await getAuthHeader(true);
+              const res = await axios.get(`${API_URL}/summary`, { headers: refreshedHeaders });
+              setSummary(res.data.summary);
+            } catch (refreshErr) {
+              console.error('Failed to fetch summary after token refresh:', refreshErr);
+            }
+          } else {
+            console.error('Failed to fetch summary:', err);
+          }
+        });
     });
   }, []);
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
-      allowsEditing: true,
-      quality: 1,
-    });
+  const ensureMediaPermissions = async () => {
+    const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status === 'granted' || status === 'limited') return true;
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    if (!canAskAgain) {
+      Alert.alert(
+        'Permission needed',
+        'Please enable photo library access in Settings to pick images.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ],
+      );
+    } else {
+      Alert.alert('Permission needed', 'Please allow photo library access to pick images.');
+    }
+    return false;
+  };
+
+  const pickImage = async () => {
+    try {
+      const granted = await ensureMediaPermissions();
+      if (!granted) return;
+
+      const mediaTypeImages =
+        // Prefer new API; fall back to string for safety on older runtimes
+        // @ts-ignore
+        (ImagePicker as any).MediaType?.Images ?? 'images';
+
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: [mediaTypeImages],
+        allowsEditing: true,
+        quality: 1,
+        selectionLimit: 1,
+      });
+
+      if (!result.canceled && result.assets?.length) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.error('Image pick failed', err);
+      Alert.alert('Error', 'Unable to open image picker.');
     }
   };
 
@@ -75,16 +122,34 @@ export default function HomeScreen() {
     }
 
     try {
-      const headers = await getAuthHeader();
-      await axios.post(`${API_URL}/dump`, formData, {
-        headers: { 
-            'Content-Type': 'multipart/form-data',
-            ...headers
-        },
-      });
-      Alert.alert('Success', 'Dump saved!');
-      setText('');
-      setImage(null);
+      let headers = await getAuthHeader();
+      try {
+        await axios.post(`${API_URL}/dump`, formData, {
+          headers: { 
+              'Content-Type': 'multipart/form-data',
+              ...headers
+          },
+        });
+        Alert.alert('Success', 'Dump saved!');
+        setText('');
+        setImage(null);
+      } catch (error: any) {
+        // If 401, try once more with refreshed token
+        if (error?.response?.status === 401) {
+          headers = await getAuthHeader(true); // Force refresh
+          await axios.post(`${API_URL}/dump`, formData, {
+            headers: { 
+                'Content-Type': 'multipart/form-data',
+                ...headers
+            },
+          });
+          Alert.alert('Success', 'Dump saved!');
+          setText('');
+          setImage(null);
+        } else {
+          throw error;
+        }
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to save dump');
       console.error(error);

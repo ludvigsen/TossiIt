@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { query } from '../db';
+import { prisma } from '../db';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -12,11 +12,11 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         return;
     }
 
-    const result = await query(
-      `SELECT * FROM events WHERE user_id = $1 ORDER BY start_time ASC`,
-      [userId]
-    );
-    res.json(result.rows);
+    const events = await prisma.event.findMany({
+      where: { userId },
+      orderBy: { startTime: 'asc' }
+    });
+    res.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
     res.status(500).json({ error: 'Internal server error' });

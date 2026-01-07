@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { query } from '../db';
+import { prisma } from '../db';
 import { createCalendarEvent } from '../services/calendar';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
@@ -14,11 +14,14 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         return;
     }
 
-    const result = await query(
-      `SELECT * FROM smart_inbox WHERE user_id = $1 AND status != 'approved' ORDER BY created_at DESC`,
-      [userId]
-    );
-    res.json(result.rows);
+    const inboxItems = await prisma.smartInbox.findMany({
+      where: {
+        userId,
+        status: { not: 'approved' }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(inboxItems);
   } catch (error) {
     console.error('Error fetching inbox:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -44,19 +47,23 @@ router.post('/:id/confirm', authenticate, async (req: Request, res: Response) =>
     }
     
     // 1. Get the inbox item first to verify existence and get dump_id
-    const inboxRes = await query('SELECT dump_id, user_id FROM smart_inbox WHERE id = $1', [id]);
-    if (inboxRes.rows.length === 0) {
+    const inboxItem = await prisma.smartInbox.findUnique({
+      where: { id },
+      select: { dumpId: true, userId: true }
+    });
+    
+    if (!inboxItem) {
         res.status(404).json({ error: 'Inbox item not found' });
         return;
     }
     
     // Verify ownership
-    if (inboxRes.rows[0].user_id !== user_id) {
+    if (inboxItem.userId !== user_id) {
         res.status(403).json({ error: 'Forbidden: Not your item' });
         return;
     }
 
-    const dumpId = inboxRes.rows[0].dump_id;
+    const dumpId = inboxItem.dumpId;
 
     // 2. Create Google Calendar Event FIRST to ensure external sync works
     const eventData = { title, start_time, end_time, location, category };
@@ -68,20 +75,26 @@ router.post('/:id/confirm', authenticate, async (req: Request, res: Response) =>
     }
 
     // 3. Mark inbox item as approved
-    await query(`UPDATE smart_inbox SET status = 'approved' WHERE id = $1`, [id]);
+    await prisma.smartInbox.update({
+      where: { id },
+      data: { status: 'approved' }
+    });
 
     // 4. Insert into Events
-    const insertEventQuery = `
-      INSERT INTO events (user_id, title, start_time, end_time, location, category, gcal_event_id, origin_dump_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    
-    const result = await query(insertEventQuery, [
-      user_id, title, start_time, end_time, location, category, gcalEventId, dumpId
-    ]);
+    const event = await prisma.event.create({
+      data: {
+        userId: user_id,
+        title,
+        startTime: new Date(start_time),
+        endTime: end_time ? new Date(end_time) : null,
+        location: location || null,
+        category: category || null,
+        gcalEventId: gcalEventId,
+        originDumpId: dumpId
+      }
+    });
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(event);
 
   } catch (error) {
     console.error('Error confirming inbox item:', error);

@@ -1,29 +1,32 @@
 import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import fs from 'fs';
 
 export interface StorageService {
   uploadFile(file: Express.Multer.File): Promise<string>;
 }
 
-export class FirebaseStorageService implements StorageService {
+class FirebaseStorageService implements StorageService {
   private bucket: any;
+  private bucketName?: string;
 
-  constructor() {
-    // Lazy load bucket to ensure admin.initializeApp() has run
-    // this.bucket = admin.storage().bucket(); 
+  constructor(bucketName?: string) {
+    this.bucketName = bucketName;
   }
 
   private getBucket() {
     if (!this.bucket) {
-        this.bucket = admin.storage().bucket();
+      this.bucket = this.bucketName
+        ? admin.storage().bucket(this.bucketName)
+        : admin.storage().bucket();
     }
     return this.bucket;
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
     const bucket = this.getBucket();
-    const fileExtension = path.extname(file.originalname);
+    const fileExtension = path.extname(file.originalname) || '.bin';
     const fileName = `dumps/${uuidv4()}${fileExtension}`;
     const fileUpload = bucket.file(fileName);
 
@@ -40,17 +43,13 @@ export class FirebaseStorageService implements StorageService {
       });
 
       blobStream.on('finish', async () => {
-        // Make the file public (optional, or generate signed URL)
-        // For simplicity in this demo, we'll make it public. 
-        // In a real app, strict rules or signed URLs are better.
         try {
-            await fileUpload.makePublic();
-            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-            resolve(publicUrl);
+          await fileUpload.makePublic();
+          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+          resolve(publicUrl);
         } catch (e) {
-             console.error("Failed to make public:", e);
-             // Fallback or re-throw
-             reject(e);
+          console.error('Failed to make public:', e);
+          reject(e);
         }
       });
 
@@ -59,6 +58,24 @@ export class FirebaseStorageService implements StorageService {
   }
 }
 
-// Switch implementation based on env
-// But for this "Cloud Ready" version, we prefer FirebaseStorage if available
-export const storageService = new FirebaseStorageService();
+class LocalStorageService implements StorageService {
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    const fileExtension = path.extname(file.originalname) || '.bin';
+    const fileName = `${uuidv4()}${fileExtension}`;
+    const filePath = path.join(uploadsDir, fileName);
+    fs.writeFileSync(filePath, file.buffer);
+    // Served by express static in non-production
+    return `/uploads/${fileName}`;
+  }
+}
+
+const bucketName =
+  (admin.apps.length && (admin.app().options as any)?.storageBucket) ||
+  process.env.STORAGE_BUCKET ||
+  process.env.FIREBASE_STORAGE_BUCKET;
+
+export const storageService: StorageService = bucketName
+  ? new FirebaseStorageService(bucketName as string)
+  : new LocalStorageService();

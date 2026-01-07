@@ -9,7 +9,7 @@ export default function InboxScreen() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const getAuthHeader = async () => {
+  const getAuthHeader = async (forceRefresh = false) => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       let userInfo = await GoogleSignin.getCurrentUser();
       if (!userInfo) {
@@ -20,7 +20,8 @@ export default function InboxScreen() {
         }
         userInfo = await GoogleSignin.getCurrentUser();
       }
-      const tokens = await GoogleSignin.getTokens();
+      // Force refresh token if requested or if token might be expired
+      const tokens = await GoogleSignin.getTokens(forceRefresh ? { forceRefresh: true } : undefined);
       const bearer = tokens.idToken;
       if (!bearer) {
         throw new Error('No idToken available; please sign in again.');

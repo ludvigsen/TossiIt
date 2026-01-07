@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email              String   @unique
+  googleRefreshToken String?  @map("google_refresh_token")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rawDumps   RawDump[]
+  smartInbox SmartInbox[]
+  events     Event[]
+
+  @@map("users")
+}
+
+model RawDump {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  contentText String?   @map("content_text") @db.Text
+  mediaUrl    String?   @map("media_url")
+  sourceType  String    @map("source_type")
+  // Note: embedding is a pgvector type - use $queryRaw for vector operations
+  // Prisma doesn't natively support pgvector, so we handle it with raw SQL
+  embedding   String? // Stored as vector(768) in DB, but accessed via raw SQL
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  smartInbox SmartInbox?
+  events     Event[]
+
+  @@map("raw_dumps")
+}
+
+model SmartInbox {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dumpId            String   @unique @map("dump_id") @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  proposedData      Json     @map("proposed_data") // JSONB in PostgreSQL
+  aiConfidenceScore Float    @map("ai_confidence_score") @db.DoublePrecision
+  status            String   @default("pending")
+  flagReason        String?  @map("flag_reason")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dump RawDump @relation(fields: [dumpId], references: [id], onDelete: Cascade)
+
+  @@map("smart_inbox")
+}
+
+model Event {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  title        String
+  startTime    DateTime  @map("start_time") @db.Timestamptz(6)
+  endTime      DateTime? @map("end_time") @db.Timestamptz(6)
+  isAllDay     Boolean   @default(false) @map("is_all_day")
+  location     String?
+  category     String?
+  gcalEventId  String?   @map("gcal_event_id")
+  originDumpId String?   @map("origin_dump_id") @db.Uuid
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originDump RawDump? @relation(fields: [originDumpId], references: [id], onDelete: SetNull)
+
+  @@map("events")
+}

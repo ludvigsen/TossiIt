@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { storageService } from '../services/storage';
-import { query } from '../db';
+import { prisma } from '../db';
 
 import { processRawDump } from '../services/processor';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -35,15 +35,14 @@ router.post('/', authenticate, upload.single('file'), async (req: Request, res: 
     }
 
     // Insert into DB
-    const insertQuery = `
-      INSERT INTO raw_dumps (user_id, source_type, content_text, media_url)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *;
-    `;
-    const values = [user_id, source_type, content_text, media_url];
-    
-    const result = await query(insertQuery, values);
-    const newDump = result.rows[0];
+    const newDump = await prisma.rawDump.create({
+      data: {
+        userId: user_id,
+        sourceType: source_type,
+        contentText: content_text || null,
+        mediaUrl: media_url
+      }
+    });
 
     // Trigger async processing
     processRawDump(newDump.id);

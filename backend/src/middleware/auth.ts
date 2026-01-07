@@ -46,9 +46,20 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     // }
 
     next();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Auth verification failed:', error);
-    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    
+    // Provide more helpful error messages
+    let errorMessage = 'Unauthorized: Invalid token';
+    if (error.message && error.message.includes('Token used too late')) {
+      errorMessage = 'Unauthorized: Token expired. Please sign out and sign in again to get a fresh token.';
+    } else if (error.message && error.message.includes('Token used too early')) {
+      errorMessage = 'Unauthorized: Token not yet valid. Please check your device clock.';
+    } else if (error.message && error.message.includes('Invalid token signature')) {
+      errorMessage = 'Unauthorized: Invalid token signature';
+    }
+    
+    res.status(401).json({ error: errorMessage });
   }
 };
 
