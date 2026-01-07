@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import { config } from './config';
 import dumpRoutes from './routes/dump';
@@ -6,6 +7,9 @@ import inboxRoutes from './routes/inbox';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import summaryRoutes from './routes/summary';
+import historyRoutes from './routes/history';
+import peopleRoutes from './routes/people';
+import actionableItemsRoutes from './routes/actionable-items';
 import { onRequest } from 'firebase-functions/v2/https';
 import { setGlobalOptions } from 'firebase-functions/v2/options';
 import dotenv from 'dotenv';
@@ -20,6 +24,12 @@ admin.initializeApp();
 setGlobalOptions({ maxInstances: 10 });
 
 const app = express();
+
+// Enable CORS for mobile app
+app.use(cors({
+  origin: true, // Allow all origins (for mobile apps)
+  credentials: true,
+}));
 
 app.use(express.json());
 
@@ -39,6 +49,9 @@ app.use('/api/inbox', inboxRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/summary', summaryRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/people', peopleRoutes);
+app.use('/api/actionable-items', actionableItemsRoutes);
 
 // Export for Firebase Functions (Gen 2)
 // We declare which secrets this function needs access to.

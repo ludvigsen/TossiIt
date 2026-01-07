@@ -39,6 +39,7 @@ export default function LoginScreen({
         // Send tokens to backend to sync/store
         try {
           await axios.post(`${API_URL}/auth/sync-token`, {
+            user_id: userInfo.data.user.id, // Google User ID (required)
             email: userInfo.data.user.email,
             server_auth_code: userInfo.data.serverAuthCode || null,
             refresh_token: tokens.refreshToken || null,

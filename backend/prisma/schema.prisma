@@ -10,21 +10,23 @@ datasource db {
 }
 
 model User {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                 String   @id // Google User ID (payload.sub) - numeric string
   email              String   @unique
   googleRefreshToken String?  @map("google_refresh_token")
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  rawDumps   RawDump[]
-  smartInbox SmartInbox[]
-  events     Event[]
+  rawDumps      RawDump[]
+  smartInbox    SmartInbox[]
+  events        Event[]
+  people        Person[]
+  actionItems   ActionableItem[]
 
   @@map("users")
 }
 
 model RawDump {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
+  userId      String    @map("user_id") // Google User ID (not UUID)
   contentText String?   @map("content_text") @db.Text
   mediaUrl    String?   @map("media_url")
   sourceType  String    @map("source_type")
@@ -34,9 +36,11 @@ model RawDump {
   processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  smartInbox SmartInbox?
-  events     Event[]
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  smartInbox  SmartInbox?
+  events      Event[]
+  people      Person[]        @relation("DumpPeople")
+  actionItems ActionableItem[]
 
   @@map("raw_dumps")
 }
@@ -44,7 +48,7 @@ model RawDump {
 model SmartInbox {
   id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   dumpId            String   @unique @map("dump_id") @db.Uuid
-  userId            String   @map("user_id") @db.Uuid
+  userId            String   @map("user_id") // Google User ID (not UUID)
   proposedData      Json     @map("proposed_data") // JSONB in PostgreSQL
   aiConfidenceScore Float    @map("ai_confidence_score") @db.DoublePrecision
   status            String   @default("pending")
@@ -59,7 +63,7 @@ model SmartInbox {
 
 model Event {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String    @map("user_id") @db.Uuid
+  userId       String    @map("user_id") // Google User ID (not UUID)
   title        String
   startTime    DateTime  @map("start_time") @db.Timestamptz(6)
   endTime      DateTime? @map("end_time") @db.Timestamptz(6)
@@ -71,6 +75,50 @@ model Event {
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   originDump RawDump? @relation(fields: [originDumpId], references: [id], onDelete: SetNull)
+  people     Person[] @relation("EventPeople")
 
   @@map("events")
+}
+
+model Person {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") // Google User ID (not UUID)
+  name        String
+  relationship String? // e.g., "family", "coworker", "teammate", "child", "spouse"
+  category    String?  // e.g., "family", "work", "sports"
+  metadata    Json?    // Flexible JSONB field for relationship-specific data
+  // For children: { birthDate, grade, school, ... }
+  // For coworkers: { company, skills, department, ... }
+  // For teammates: { team, position, sport, ... }
+  // etc.
+  notes       String?  // Additional context about this person
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dumps       RawDump[]       @relation("DumpPeople")
+  events      Event[]         @relation("EventPeople")
+  actionItems ActionableItem[] @relation("ActionItemPeople")
+
+  @@unique([userId, name])
+  @@map("people")
+}
+
+model ActionableItem {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") // Google User ID (not UUID)
+  dumpId      String?   @map("dump_id") @db.Uuid
+  title       String
+  description String?   @db.Text
+  dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
+  completed   Boolean   @default(false)
+  priority    String?   // "high", "medium", "low"
+  category    String?   // e.g., "school", "family", "work"
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dump   RawDump? @relation(fields: [dumpId], references: [id], onDelete: SetNull)
+  people Person[] @relation("ActionItemPeople")
+
+  @@map("actionable_items")
 }

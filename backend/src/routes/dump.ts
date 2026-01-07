@@ -13,6 +13,7 @@ router.post('/', authenticate, upload.single('file'), async (req: Request, res: 
   try {
     const { source_type, content_text } = req.body;
     const user_id = (req as AuthRequest).user?.id; // Get from token
+    const user_email = (req as AuthRequest).user?.email; // Get from token
     const file = req.file;
 
     // Validate inputs
@@ -27,6 +28,41 @@ router.post('/', authenticate, upload.single('file'), async (req: Request, res: 
     if (!file && !content_text) {
        res.status(400).json({ error: 'Either file or content_text is required' });
        return;
+    }
+
+    // Ensure user exists in database (auto-create if needed)
+    const existingUser = await prisma.user.findUnique({
+      where: { id: user_id }
+    });
+
+    if (!existingUser) {
+      // User doesn't exist, create them
+      if (!user_email) {
+        res.status(400).json({ error: 'User email missing from token' });
+        return;
+      }
+      
+      // Check if user exists with this email but different ID (migration case)
+      const userByEmail = await prisma.user.findUnique({
+        where: { email: user_email }
+      });
+      
+      if (userByEmail) {
+        // Delete old user and create new one with Google User ID
+        console.log(`Migrating user ${user_email} from ${userByEmail.id} to ${user_id}`);
+        await prisma.user.delete({
+          where: { email: user_email }
+        });
+      }
+      
+      // Create new user
+      await prisma.user.create({
+        data: {
+          id: user_id,
+          email: user_email,
+          googleRefreshToken: null // Will be set when /auth/sync-token is called
+        }
+      });
     }
 
     let media_url = null;

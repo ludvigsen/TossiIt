@@ -17,7 +17,20 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const inboxItems = await prisma.smartInbox.findMany({
       where: {
         userId,
-        status: { not: 'approved' }
+        status: { 
+          notIn: ['approved', 'rejected', 'dismissed']
+        }
+      },
+      include: {
+        dump: {
+          select: {
+            id: true,
+            contentText: true,
+            mediaUrl: true,
+            sourceType: true,
+            createdAt: true,
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -98,6 +111,48 @@ router.post('/:id/confirm', authenticate, async (req: Request, res: Response) =>
 
   } catch (error) {
     console.error('Error confirming inbox item:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/inbox/:id/dismiss - Dismiss/Reject item (don't create event)
+router.post('/:id/dismiss', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user_id = (req as AuthRequest).user?.id;
+
+    if (!user_id) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    
+    // 1. Get the inbox item first to verify existence
+    const inboxItem = await prisma.smartInbox.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+    
+    if (!inboxItem) {
+        res.status(404).json({ error: 'Inbox item not found' });
+        return;
+    }
+    
+    // Verify ownership
+    if (inboxItem.userId !== user_id) {
+        res.status(403).json({ error: 'Forbidden: Not your item' });
+        return;
+    }
+
+    // 2. Mark inbox item as dismissed/rejected
+    await prisma.smartInbox.update({
+      where: { id },
+      data: { status: 'dismissed' }
+    });
+
+    res.status(200).json({ message: 'Item dismissed' });
+
+  } catch (error) {
+    console.error('Error dismissing inbox item:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
