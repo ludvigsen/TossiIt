@@ -1,6 +1,6 @@
 {
   "name": "tossit",
-  "version": "1.0.2",
+  "version": "1.0.17",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

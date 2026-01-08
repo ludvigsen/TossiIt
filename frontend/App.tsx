@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useColorScheme, View, TouchableOpacity, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useShareIntent } from 'expo-share-intent';
+import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import DashboardScreen from './src/screens/DashboardScreen';
 import CaptureScreen from './src/screens/CaptureScreen';
 import InboxScreen from './src/screens/InboxScreen';
@@ -63,12 +63,22 @@ function SettingsStackScreen({ navigation }: any) {
 }
 
 export default function App() {
+  return (
+    <ShareIntentProvider>
+      <AppInner />
+    </ShareIntentProvider>
+  );
+}
+
+function AppInner() {
   const [userToken, setUserToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>('system');
   const systemColorScheme = useColorScheme();
-  const { hasShareIntent } = useShareIntent();
+  const { hasShareIntent } = useShareIntentContext();
+  const [navReady, setNavReady] = useState(false);
+  const [pendingShareNav, setPendingShareNav] = useState(false);
 
   const handleLogout = () => {
     setUserToken(null);
@@ -94,37 +104,39 @@ export default function App() {
     setThemeChangeCallback(handleThemeChange);
   }, []);
 
-  // Handle Share Intent Navigation
+  // Remember that a share intent happened (can arrive before navigation/auth are ready)
   useEffect(() => {
-    if (hasShareIntent && userToken && navigationRef.isReady()) {
+    if (hasShareIntent) {
+      setPendingShareNav(true);
+    }
+  }, [hasShareIntent]);
+
+  // Handle Share Intent Navigation (works on cold start too)
+  useEffect(() => {
+    if (pendingShareNav && userToken && navReady && navigationRef.isReady()) {
       // Navigate to Capture screen if share intent exists
       // @ts-ignore
       navigationRef.navigate('Capture');
     }
-  }, [hasShareIntent, userToken]);
+  }, [pendingShareNav, userToken, navReady]);
 
   // Attempt silent sign-in on app start so user doesn't have to log in every time
   useEffect(() => {
     const bootstrapAuth = async () => {
       try {
-        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-        // Always try silent sign-in first to refresh credentials if possible
-        try {
-          await GoogleSignin.signInSilently();
-        } catch {
-          // If silent sign-in fails, we'll just show the login screen
-          console.log('Silent sign-in failed; user may need to login manually');
-        }
+        // IMPORTANT: never show dialogs during bootstrap (can run before Activity is ready)
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
 
-        // Force-refresh tokens so we never reuse an expired idToken
-        const tokens = await GoogleSignin.getTokens({ forceRefresh: true } as any);
-        const bearer = tokens.idToken;
+        // Only attempt silent sign-in. Never call interactive sign-in here.
+        await GoogleSignin.signInSilently();
+
         const uid = (await GoogleSignin.getCurrentUser())?.user.id;
+        const tokens = await GoogleSignin.getTokens().catch(() => ({ idToken: null } as any));
+        const bearer = tokens?.idToken;
 
         if (bearer && uid) {
           setUserToken(bearer);
           setUserId(uid);
-          // Persist for UX (we don't rely on this for auth anymore)
           await AsyncStorage.setItem('userToken', bearer);
           await AsyncStorage.setItem('userId', uid);
         }
@@ -162,6 +174,7 @@ export default function App() {
   return (
     <NavigationContainer
       ref={navigationRef}
+      onReady={() => setNavReady(true)}
       theme={{
         dark: isDark,
         colors: {

@@ -1,12 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { getDayRangeFromTzOffsetMinutes } from '../utils/time';
 
 const router = Router();
 
 // GET /api/dashboard/today
 // Returns events and todos for the current day
-// Accepts optional ?timezone=... query param for client timezone (defaults to server timezone)
+// Accepts optional ?tzOffsetMinutes=... (JS Date.getTimezoneOffset()) to compute "today" in client timezone.
 router.get('/today', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = (req as AuthRequest).user?.id;
@@ -16,14 +17,8 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
     }
 
     const now = new Date();
-    
-    // Calculate start and end of "today" in server timezone
-    // For better UX, we could accept timezone from client, but for now use server timezone
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-    
-    const endOfToday = new Date(now);
-    endOfToday.setHours(23, 59, 59, 999);
+    const tzOffsetMinutes = req.query.tzOffsetMinutes ? Number(req.query.tzOffsetMinutes) : undefined;
+    const { startUtc: startOfToday, endUtc: endOfToday, localDateISO } = getDayRangeFromTzOffsetMinutes(now, tzOffsetMinutes);
 
     // Fetch events for today (from start of day to end of day)
     // Also include events that started earlier today but haven't ended yet
@@ -34,6 +29,9 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
           gte: startOfToday,
           lte: endOfToday
         }
+      },
+      include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
       },
       orderBy: { startTime: 'asc' }
     });
@@ -51,6 +49,9 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
           { dueDate: null } // Items with no due date
         ]
       },
+      include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
+      },
       orderBy: [
         { dueDate: 'asc' }, // Overdue first (nulls last), then due today, then no due date
         { createdAt: 'desc' } // For items with same due date, newest first
@@ -61,6 +62,7 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
     const [events, todos] = await Promise.all([eventsPromise, todosPromise]);
 
     res.json({
+      date: localDateISO,
       events,
       todos
     });

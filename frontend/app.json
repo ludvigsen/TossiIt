@@ -2,7 +2,7 @@
   "expo": {
     "name": "TossIt",
     "slug": "tossit",
-    "version": "1.0.2",
+    "version": "1.0.17",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -52,9 +52,7 @@
           ]
         }
       ],
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -89,7 +87,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
-          "cameraPermission": "Allow $(PRODUCT_NAME) to use the camera."
+          "cameraPermission": false
         }
       ]
     ]

@@ -30,9 +30,13 @@ const app = express();
 app.use(cors({
   origin: true, // Allow all origins (for mobile apps)
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
 }));
 
+// Body parsers - express.json() for JSON, multer will handle multipart/form-data
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files statically (Only works for local/filesystem, not recommended for serverless)
 // In production, we should use S3/Storage URLs directly.

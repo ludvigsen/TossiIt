@@ -30,10 +30,11 @@ export default function DashboardScreen() {
   const fetchData = async () => {
     try {
       const headers = await getAuthHeader();
+      const tzOffsetMinutes = new Date().getTimezoneOffset();
       
       // Fetch Dashboard Data (Fast)
       try {
-        const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers });
+        const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers, params: { tzOffsetMinutes } });
         setTodayEvents(dashboardRes.data.events);
         setTodayTodos(dashboardRes.data.todos);
       } catch (err) {
@@ -44,7 +45,7 @@ export default function DashboardScreen() {
 
       // Fetch Summary (Slow)
       try {
-        const summaryRes = await axios.get(`${API_URL}/summary`, { headers });
+        const summaryRes = await axios.get(`${API_URL}/summary`, { headers, params: { tzOffsetMinutes } });
         setSummary(summaryRes.data.summary);
       } catch (err) {
         console.error('Error fetching summary', err);

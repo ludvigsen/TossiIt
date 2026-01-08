@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Image, Alert, Text, ScrollView, Linking, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { View, TextInput, Image, Alert, Text, ScrollView, Linking, TouchableOpacity, ActivityIndicator, Modal, Platform } from 'react-native';
 import { useColorScheme } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useShareIntent } from 'expo-share-intent';
+// Use expo-file-system for reading files as base64
+import * as FileSystem from 'expo-file-system/legacy';
+import { useShareIntentContext } from 'expo-share-intent';
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { API_URL } from '../utils/env';
@@ -14,29 +16,44 @@ export default function CaptureScreen() {
   const [progressText, setProgressText] = useState('');
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
+  const [shareConsumed, setShareConsumed] = useState(false);
 
   useEffect(() => {
-    if (hasShareIntent && (shareIntent.type === 'image' || shareIntent.type === 'media')) {
-      if (shareIntent.files && shareIntent.files.length > 0) {
-        setImage(shareIntent.files[0].path);
-        // Wait a bit before resetting so UI can update
-        setTimeout(() => resetShareIntent(), 100);
+    if (!hasShareIntent || shareConsumed) return;
+
+    // Cold start: files can arrive a tick later; this effect will rerun when shareIntent updates.
+    if (shareIntent.type === 'image' || shareIntent.type === 'media') {
+      const first = shareIntent.files?.[0];
+      const uri = first?.path;
+      if (uri) {
+        console.log('Share intent image received:', { uri, mimeType: first?.mimeType, fileName: first?.fileName });
+        setImage(uri);
+        setShareConsumed(true);
+        // Give the UI time to render the image before clearing native payload.
+        setTimeout(() => resetShareIntent(), 750);
+      } else {
+        console.log('Share intent present but no file yet:', shareIntent);
       }
-    } else if (hasShareIntent && shareIntent.type === 'text') {
-      setText(shareIntent.value || '');
-      setTimeout(() => resetShareIntent(), 100);
+    } else if (shareIntent.type === 'text') {
+      const value = shareIntent.value || '';
+      console.log('Share intent text received:', value?.slice?.(0, 80));
+      setText(value);
+      setShareConsumed(true);
+      setTimeout(() => resetShareIntent(), 750);
     }
-  }, [hasShareIntent, shareIntent, resetShareIntent]);
+  }, [hasShareIntent, shareIntent, shareConsumed, resetShareIntent]);
 
   const getAuthHeader = async (forceRefresh = false) => {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // Never show dialogs from background/initialization flows
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
     let userInfo = await GoogleSignin.getCurrentUser();
     if (!userInfo) {
       try {
         await GoogleSignin.signInSilently();
       } catch {
-        userInfo = (await GoogleSignin.signIn()) as any;
+        // Do NOT trigger interactive sign-in here (can crash on cold start).
+        throw new Error('Not signed in. Please sign in from the login screen.');
       }
       userInfo = await GoogleSignin.getCurrentUser();
     }
@@ -101,49 +118,132 @@ export default function CaptureScreen() {
     setLoading(true);
     setProgressText('Preparing upload...');
     
-    const formData = new FormData();
     const userInfo = await GoogleSignin.getCurrentUser();
 
-    formData.append('user_id', userInfo?.user.id || 'unknown');
-    formData.append('source_type', 'app_capture');
-    if (text) formData.append('content_text', text);
-
+    // Use JSON for both text + images.
+    // For images, encode as base64 to avoid flaky multipart uploads on RN/Android.
+    let requestData: any;
     if (image) {
-      // @ts-ignore
-      formData.append('file', {
-        uri: image,
-        name: 'upload.jpg',
-        type: 'image/jpeg',
-      });
+      try {
+        setProgressText('Reading image...');
+        let fileUri = image;
+        if (!fileUri.includes('://')) {
+          fileUri = fileUri.startsWith('/') ? `file://${fileUri}` : `file:///${fileUri}`;
+        }
+
+        const base64 = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        requestData = {
+          user_id: userInfo?.user.id || 'unknown',
+          source_type: 'app_capture',
+          content_text: text || null,
+          file_base64: base64,
+        };
+        console.log('Prepared JSON payload with image base64 length:', base64.length);
+      } catch (e) {
+        console.error('Failed to read image as base64:', e);
+        Alert.alert('Error', 'Failed to read image. Please try another image.');
+        setLoading(false);
+        setProgressText('');
+        return;
+      }
+    } else {
+      requestData = {
+        user_id: userInfo?.user.id || 'unknown',
+        source_type: 'app_capture',
+        content_text: text || null,
+      };
     }
 
     try {
       setProgressText('Authenticating...');
       let headers = await getAuthHeader();
       
+      console.log('Uploading to:', `${API_URL}/dump`);
+      console.log('Request entries:', { hasFile: !!image, hasText: !!text, userId: userInfo?.user.id });
+      
+      // Test connectivity first with a simple authenticated request (like other screens do)
+      try {
+        console.log('Testing backend connectivity with authenticated request...');
+        console.log('Full API_URL:', API_URL);
+        // Use the same pattern as other screens - try to fetch something that requires auth
+        // This will tell us if it's a general connectivity issue or specific to FormData
+        const testResponse = await axios.get(`${API_URL}/people`, { 
+          headers,
+          timeout: 10000,
+          validateStatus: (status) => status < 500 // Accept any status < 500 as "reachable"
+        });
+        console.log('Backend is reachable, status:', testResponse.status);
+      } catch (testError: any) {
+        console.error('Backend connectivity test failed:');
+        console.error('  Error code:', testError?.code);
+        console.error('  Error message:', testError?.message);
+        console.error('  Error response:', testError?.response?.status, testError?.response?.data);
+        console.error('  Request URL:', testError?.config?.url);
+        // If this fails, it's a general connectivity issue, not FormData-specific
+        if (testError?.code === 'ERR_NETWORK') {
+          Alert.alert(
+            'Network Error', 
+            'Cannot reach the backend server. Please check:\n' +
+            '1. Your internet connection\n' +
+            '2. If you\'re on a VPN, try disabling it\n' +
+            '3. The backend URL: ' + API_URL
+          );
+          setLoading(false);
+          setProgressText('');
+          return;
+        }
+        // Continue anyway - might be a 401/403 which is fine for testing
+      }
+      
       setProgressText('Uploading and processing...');
       try {
-        await axios.post(`${API_URL}/dump`, formData, {
+        const response = await axios.post(`${API_URL}/dump`, requestData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
-            ...headers
+            ...headers,
+            'Content-Type': 'application/json',
           },
+          timeout: 120000,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
         });
+
+        console.log('Upload successful:', response.status);
         setProgressText('Success!');
         Alert.alert('Success', 'Note saved!');
         setText('');
         setImage(null);
       } catch (error: any) {
+        console.log('Caught error during upload:', error);
+        console.log('Error status:', error?.response?.status);
+        
         if (error?.response?.status === 401) {
+          console.log('401 detected, attempting refresh...');
           setProgressText('Refreshing session...');
-          headers = await getAuthHeader(true);
+          
+          try {
+            // Force sign in silently to ensure we get a fresh token
+            await GoogleSignin.signInSilently();
+            headers = await getAuthHeader(true);
+            console.log('Session refreshed, new headers obtained');
+          } catch (refreshError) {
+            console.error('Failed to refresh session:', refreshError);
+            throw new Error('Session expired. Please sign out and sign in again.');
+          }
+
           setProgressText('Retrying upload...');
-          await axios.post(`${API_URL}/dump`, formData, {
+          await axios.post(`${API_URL}/dump`, requestData, {
             headers: {
-              'Content-Type': 'multipart/form-data',
-              ...headers
+              ...headers,
+              'Content-Type': 'application/json',
             },
+            timeout: 120000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
           });
+
           Alert.alert('Success', 'Note saved!');
           setText('');
           setImage(null);
@@ -151,9 +251,31 @@ export default function CaptureScreen() {
           throw error;
         }
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save note');
-      console.error(error);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      console.error('Error code:', error?.code);
+      console.error('Error message:', error?.message);
+      console.error('Error response:', error?.response?.data);
+      console.error('Error status:', error?.response?.status);
+      console.error('Request URL:', `${API_URL}/dump`);
+      
+      let errorMessage = 'Failed to save note';
+      
+      if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your internet connection and try again.';
+      } else if (error?.code === 'ERR_NETWORK' || error?.message?.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your internet connection and ensure the server is reachable.';
+      } else if (error?.code === 'ERR_INTERNET_DISCONNECTED') {
+        errorMessage = 'No internet connection. Please check your network settings.';
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.status) {
+        errorMessage = `Server error (${error.response.status}). Please try again later.`;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
       setProgressText('');

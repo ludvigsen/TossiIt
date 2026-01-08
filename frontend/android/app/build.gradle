@@ -88,12 +88,30 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'ai.tossit.app'
+    
+    // Remove camera and audio permissions from merged manifest (not used by app)
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def processManifest = output.getProcessManifestProvider().get()
+            processManifest.doLast { task ->
+                def outputDir = task.multiApkManifestOutputDirectory.get().asFile
+                File manifestOutFile = file("$outputDir/AndroidManifest.xml")
+                if (manifestOutFile.exists()) {
+                    def manifestContent = manifestOutFile.getText('UTF-8')
+                    // Remove camera and audio permissions (not used by app)
+                    manifestContent = manifestContent.replaceAll('<uses-permission android:name="android.permission.CAMERA" />', '')
+                    manifestContent = manifestContent.replaceAll('<uses-permission android:name="android.permission.RECORD_AUDIO" />', '')
+                    manifestOutFile.write(manifestContent, 'UTF-8')
+                }
+            }
+        }
+    }
     defaultConfig {
         applicationId 'ai.tossit.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1000002
-        versionName "1.0.2"
+        versionCode 1000017
+        versionName "1.0.17"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -113,7 +131,7 @@ android {
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -135,10 +153,6 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
-    }
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
     }
 }
 

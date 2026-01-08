@@ -57,13 +57,13 @@ export default function PeopleScreen() {
   const isDark = colorScheme === 'dark';
 
   const getAuthHeader = async () => {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
     let userInfo = await GoogleSignin.getCurrentUser();
     if (!userInfo) {
       try {
         await GoogleSignin.signInSilently();
       } catch {
-        userInfo = (await GoogleSignin.signIn()) as any;
+        throw new Error('Not signed in. Please sign in from the login screen.');
       }
       userInfo = await GoogleSignin.getCurrentUser();
     }

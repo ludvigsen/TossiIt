@@ -12,7 +12,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         return;
     }
 
-    const summary = await generateDailySummary(userId);
+    const tzOffsetMinutes = req.query.tzOffsetMinutes ? Number(req.query.tzOffsetMinutes) : undefined;
+    const summary = await generateDailySummary(userId, tzOffsetMinutes);
     res.json({ summary });
   } catch (error) {
     console.error('Error fetching summary:', error);
