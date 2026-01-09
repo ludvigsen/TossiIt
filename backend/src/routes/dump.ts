@@ -114,7 +114,13 @@ router.post('/', authenticate, conditionalMulter, async (req: Request, res: Resp
     } else if (file_base64) {
       // Handle base64 upload
       try {
+        // Enforce a hard limit similar to multer (10MB raw file size)
+        // Note: base64 length isn't exact bytes; decode and check buffer length.
         const buffer = Buffer.from(file_base64, 'base64');
+        if (buffer.length > 10 * 1024 * 1024) {
+          res.status(400).json({ error: 'File too large. Maximum size is 10MB.' });
+          return;
+        }
         const simulatedFile: Express.Multer.File = {
           fieldname: 'file',
           originalname: 'upload.jpg', // Default name

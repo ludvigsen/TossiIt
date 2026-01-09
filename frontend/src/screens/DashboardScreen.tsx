@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, useColorScheme } from 'react-native';
 import axios from 'axios';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Markdown from 'react-native-markdown-display';
 import { API_URL } from '../utils/env';
 import { useNavigation } from '@react-navigation/native';
 import { TossItLogo } from '../components/Logo';
+import { getAuthHeaders } from '../utils/auth';
 
 export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
@@ -18,18 +18,9 @@ export default function DashboardScreen() {
   const isDark = colorScheme === 'dark';
   const navigation = useNavigation();
 
-  const getAuthHeader = async () => {
-    const tokens = await GoogleSignin.getTokens();
-    const userInfo = await GoogleSignin.getCurrentUser();
-    return { 
-        'Authorization': `Bearer ${tokens.idToken}`,
-        'X-User-Id': userInfo?.user.id 
-    };
-  };
-
   const fetchData = async () => {
     try {
-      const headers = await getAuthHeader();
+      const headers = await getAuthHeaders();
       const tzOffsetMinutes = new Date().getTimezoneOffset();
       
       // Fetch Dashboard Data (Fast)

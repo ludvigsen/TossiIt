@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { getDayRangeFromTzOffsetMinutes } from '../utils/time';
+import { enforceArchiveRules } from '../services/archive';
 
 const router = Router();
 
@@ -15,6 +16,8 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
+
+    await enforceArchiveRules(userId);
 
     const now = new Date();
     const tzOffsetMinutes = req.query.tzOffsetMinutes ? Number(req.query.tzOffsetMinutes) : undefined;
@@ -43,6 +46,8 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
     const todosPromise = prisma.actionableItem.findMany({
       where: {
         userId,
+        kind: 'todo',
+        archivedAt: null,
         completed: false,
         OR: [
           { dueDate: { lte: endOfToday } }, // Overdue or due today
@@ -59,12 +64,27 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
       take: 20 // Limit to 20 items to keep dashboard clean
     });
 
-    const [events, todos] = await Promise.all([eventsPromise, todosPromise]);
+    const infosPromise = prisma.actionableItem.findMany({
+      where: {
+        userId,
+        kind: 'info',
+        archivedAt: null,
+        expiresAt: { not: null, gte: now },
+      },
+      include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
+      },
+      orderBy: [{ expiresAt: 'asc' }, { createdAt: 'desc' }],
+      take: 20,
+    });
+
+    const [events, todos, infos] = await Promise.all([eventsPromise, todosPromise, infosPromise]);
 
     res.json({
       date: localDateISO,
       events,
-      todos
+      todos,
+      infos
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

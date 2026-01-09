@@ -2,12 +2,15 @@ import { prisma } from '../db';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config';
 import { getDayRangeFromTzOffsetMinutes } from '../utils/time';
+import { enforceArchiveRules } from './archive';
 
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey || '');
 const model = genAI.getGenerativeModel({ model: config.gemini.model });
 
 export const generateDailySummary = async (userId: string, tzOffsetMinutes?: number) => {
   try {
+    await enforceArchiveRules(userId);
+
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const { startUtc: startOfToday, endUtc: endOfToday, localDateISO } = getDayRangeFromTzOffsetMinutes(now, tzOffsetMinutes);
@@ -29,10 +32,12 @@ export const generateDailySummary = async (userId: string, tzOffsetMinutes?: num
       }
     });
 
-    // 1b. Fetch relevant todos for today/overdue (same logic as dashboard)
+    // 1b. Fetch relevant todos for today/overdue (active only; overdue>12h already archived)
     const todos = await prisma.actionableItem.findMany({
       where: {
         userId,
+        kind: 'todo',
+        archivedAt: null,
         completed: false,
         OR: [
           { dueDate: { lte: endOfToday } },
@@ -46,6 +51,21 @@ export const generateDailySummary = async (userId: string, tzOffsetMinutes?: num
         { dueDate: 'asc' },
         { createdAt: 'desc' },
       ],
+      take: 20,
+    });
+
+    // 1c. Fetch active infos
+    const infos = await prisma.actionableItem.findMany({
+      where: {
+        userId,
+        kind: 'info',
+        archivedAt: null,
+        expiresAt: { not: null, gte: now },
+      },
+      include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
+      },
+      orderBy: [{ expiresAt: 'asc' }, { createdAt: 'desc' }],
       take: 20,
     });
 
@@ -95,6 +115,13 @@ ${JSON.stringify({
     priority: t.priority,
     category: t.category,
     people: t.people?.map(p => ({ name: p.name, relationship: p.relationship, category: p.category })) ?? [],
+  })),
+  infos: infos.map(i => ({
+    title: i.title,
+    description: i.description,
+    expiresAt: i.expiresAt,
+    category: i.category,
+    people: i.people?.map(p => ({ name: p.name, relationship: p.relationship, category: p.category })) ?? [],
   })),
   recentNotes: dumps.map(d => ({
     sourceType: d.sourceType,

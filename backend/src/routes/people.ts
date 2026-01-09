@@ -35,7 +35,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    const { id, name, relationship, category, notes, metadata } = req.body;
+    const { id, name, relationship, category, notes, metadata, isImportant, pinnedOrder } = req.body;
 
     if (!name) {
       res.status(400).json({ error: 'Name is required' });
@@ -61,6 +61,8 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
             category: category ?? undefined,
             notes: notes ?? undefined,
             metadata: metadata ?? undefined,
+            isImportant: typeof isImportant === 'boolean' ? isImportant : undefined,
+            pinnedOrder: typeof pinnedOrder === 'number' ? pinnedOrder : undefined,
           }
         });
         res.json(updated);
@@ -87,6 +89,8 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
         category: category || undefined,
         notes: notes || undefined,
         metadata: metadata || undefined,
+        isImportant: typeof isImportant === 'boolean' ? isImportant : undefined,
+        pinnedOrder: typeof pinnedOrder === 'number' ? pinnedOrder : undefined,
       },
       create: {
         userId,
@@ -95,6 +99,8 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
         category: category || null,
         notes: notes || null,
         metadata: metadata || null,
+        isImportant: typeof isImportant === 'boolean' ? isImportant : false,
+        pinnedOrder: typeof pinnedOrder === 'number' ? pinnedOrder : null,
       }
     });
 

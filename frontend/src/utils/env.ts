@@ -13,7 +13,7 @@ const fallback = Platform.select({
 
 // Temporarily force production URL for debugging
 // Set EXPO_PUBLIC_API_URL environment variable to override, or change this line
-const FORCE_PRODUCTION = true; // Set to false to use local backend
+const FORCE_PRODUCTION = false; // Set to true to force the deployed backend
 
 export const API_URL =
   process.env.EXPO_PUBLIC_API_URL?.trim() ||

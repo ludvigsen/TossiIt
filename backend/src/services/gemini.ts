@@ -25,6 +25,38 @@ const model = genAI.getGenerativeModel({
               relationship: { type: SchemaType.STRING, description: "family, coworker, teammate, child, spouse, friend, etc." },
               category: { type: SchemaType.STRING, description: "family, work, sports, school, etc." },
               grade: { type: SchemaType.STRING, description: "Grade level if mentioned (e.g., '8th grade', '8. klasse')" },
+              birthDate: { type: SchemaType.STRING, description: "Birth date if known/inferred from text, in YYYY-MM-DD format" },
+              school: { type: SchemaType.STRING, description: "School name if mentioned" },
+              kindergarten: { type: SchemaType.STRING, description: "Kindergarten name if mentioned" },
+              company: { type: SchemaType.STRING, description: "Company name (for coworkers) if mentioned" },
+              department: { type: SchemaType.STRING, description: "Department/team (for coworkers) if mentioned" },
+              role: { type: SchemaType.STRING, description: "Role/title (for coworkers) if mentioned" },
+              workplace: { type: SchemaType.STRING, description: "Workplace (for spouse/partner) if mentioned" },
+              gradeTaught: { type: SchemaType.STRING, description: "Grade taught (for teachers) if mentioned" },
+              subject: { type: SchemaType.STRING, description: "Subject taught (for teachers) if mentioned" },
+              sport: { type: SchemaType.STRING, description: "Sport coached (for coaches) if mentioned" },
+              team: { type: SchemaType.STRING, description: "Team name (for coaches) if mentioned" },
+              organization: { type: SchemaType.STRING, description: "Club/organization (for coaches) if mentioned" },
+              metadata: {
+                type: SchemaType.OBJECT,
+                description:
+                  "Optional relationship-specific metadata as a JSON object. Use only these keys when possible.",
+                properties: {
+                  birthDate: { type: SchemaType.STRING, description: "YYYY-MM-DD if known" },
+                  grade: { type: SchemaType.STRING, description: "Grade level (child)" },
+                  school: { type: SchemaType.STRING, description: "School name" },
+                  kindergarten: { type: SchemaType.STRING, description: "Kindergarten name" },
+                  company: { type: SchemaType.STRING, description: "Company name" },
+                  department: { type: SchemaType.STRING, description: "Department/team" },
+                  role: { type: SchemaType.STRING, description: "Role/title" },
+                  workplace: { type: SchemaType.STRING, description: "Workplace name" },
+                  gradeTaught: { type: SchemaType.STRING, description: "Grade taught" },
+                  subject: { type: SchemaType.STRING, description: "Subject taught" },
+                  sport: { type: SchemaType.STRING, description: "Sport coached" },
+                  team: { type: SchemaType.STRING, description: "Team name" },
+                  organization: { type: SchemaType.STRING, description: "Club/organization" },
+                },
+              },
               notes: { type: SchemaType.STRING, description: "Additional context like grade, age, or relationship details" },
               person_id: { type: SchemaType.STRING, description: "ID of an existing person from known_people if this clearly matches them" },
               is_new: { type: SchemaType.BOOLEAN, description: "true if this is a new person not in known_people" }
@@ -40,13 +72,20 @@ const model = genAI.getGenerativeModel({
             properties: {
               title: { type: SchemaType.STRING },
               description: { type: SchemaType.STRING },
+              kind: { type: SchemaType.STRING, description: "\"todo\" or \"info\". Use \"info\" for non-actionable context that should expire." },
               due_date: { type: SchemaType.STRING, description: "ISO 8601 date string or null" },
+              expires_at: { type: SchemaType.STRING, description: "ISO 8601 date string or null. REQUIRED when kind=\"info\"." },
               priority: { type: SchemaType.STRING, description: "high, medium, or low" },
-              category: { type: SchemaType.STRING, description: "school, family, work, etc." }
+              category: { type: SchemaType.STRING, description: "school, family, work, etc." },
+              people_ids: {
+                type: SchemaType.ARRAY,
+                items: { type: SchemaType.STRING },
+                description: "List of existing person_id values (from KNOWN PEOPLE) relevant to this item."
+              }
             },
             required: ["title"]
           },
-          description: "Actionable items or reminders extracted from the dump (e.g., 'bring hot cocoa for school hike')"
+          description: "Items extracted from the dump. Use kind=todo for actionable tasks and kind=info for time-bounded context. Always include expires_at for info."
         },
         full_text: {
           type: SchemaType.STRING,
@@ -144,7 +183,7 @@ export const processDumpWithGemini = async (
 
   const knownPeopleString =
     knownPeople.length > 0
-      ? `KNOWN PEOPLE (JSON):\n${JSON.stringify(knownPeople)}\n\nWhen you output people:\n- If a mentioned person clearly matches one of these, set person_id to that person's id and is_new to false.\n- If it is clearly a different/new person, set person_id to null and is_new to true.\n- Prefer mapping by name first, then by grade/metadata (e.g., grade, school, relationship).\n`
+      ? `KNOWN PEOPLE (JSON):\n${JSON.stringify(knownPeople)}\n\nWhen you output people:\n- If a mentioned person clearly matches one of these, set person_id to that person's id and is_new to false.\n- If you do NOT know the id, OMIT person_id entirely (do NOT output person_id: null and do NOT output the string \"null\").\n- If it is clearly a different/new person, set is_new = true and omit person_id.\n- Prefer mapping by name first, then by grade/metadata (e.g., grade, school, relationship).\n`
       : 'There are currently no known people defined for this user.';
 
   const now = new Date();
@@ -176,19 +215,32 @@ export const processDumpWithGemini = async (
        - Category: school, family, work, sports, etc.
     
     2. People mentioned:
-       - Look for names, grades (e.g., "8th grade", "8. klasse"), ages
-       - If grade is mentioned (like "8th grade students"), note this for matching to people
-       - Infer relationship: if it's about a school event and mentions a grade, it's likely about a child
-       - Include context like "8th grade" in the person's category or notes
-       - Use the KNOWN PEOPLE list below to try to map each mentioned person to an existing person_id
+       - Look for names, grades (e.g., "8th grade", "8. klasse"), ages, school/kindergarten names, companies, roles, teachers, coaches.
+       - Infer relationship: child / spouse / family / teacher / coach / coworker / friend / acquaintance / other.
+       - Populate relationship-specific metadata whenever possible:
+         * child: birthDate (YYYY-MM-DD if explicitly present), grade, school OR kindergarten
+         * teacher: gradeTaught, school, subject
+         * coach: sport, team, organization
+         * coworker: company, department, role
+         * spouse/partner: workplace, birthDate (if present)
+       - You can put these fields directly on the person object and/or inside metadata (preferred). Avoid inventing values.
+       - Use the KNOWN PEOPLE list below to map each mentioned person to an existing person_id when possible.
     
-    3. Actionable items/reminders:
-       - Extract EVERYTHING that requires action:
+    3. Items (todos + info):
+       - Extract BOTH actionable tasks (todos) and non-actionable time-bounded context (info).
+       - Use kind="todo" for tasks the user must do.
+       - Use kind="info" for context that should auto-hide after it is no longer relevant.
+       - For kind="info", you MUST set expires_at (you decide it).
+       - People linkage:
+         * If this message is about a child's school/kindergarten activity, then ALL related todos and infos should be attributed to that child.
+         * When the child is a KNOWN PERSON, include their person_id in people_ids for EVERY related item (todos AND info).
+         * If the child is not a known person_id, still include the child as a person in the people[] array (relationship=child) with metadata (grade/school), and leave people_ids empty.
+       - Extract EVERYTHING that requires action (todos):
          * Things to bring (cocoa, warm clothes, shoes, gloves, etc.)
          * Things to prepare (packed lunch, sausages for grilling)
          * Things to inform about (tell teachers by Wednesday)
          * Deadlines (inform by Wednesday)
-       - Set due dates: if it says "inform by Wednesday", set the due_date to that Wednesday
+       - Set due dates (todo): if it says "inform by Wednesday", set the due_date to that Wednesday
        - Priority: "high" for deadlines, "medium" for things to bring/prepare
     
     4. School/Event context:
@@ -203,6 +255,9 @@ export const processDumpWithGemini = async (
       * If names are generic (\"child\", \"son\", \"daughter\", etc.) but grade/school/relationship clearly match a known child, map to that child.
       * Only when you are confident that this is a different person NOT in the list, set is_new = true and leave person_id null.
     - Avoid inventing new generic people when an appropriate known person exists.
+    - Always set is_new explicitly:
+      * is_new = false when you mapped to a known person_id
+      * is_new = true when you are creating a new person (and omit person_id)
     
     ${contextString}
 

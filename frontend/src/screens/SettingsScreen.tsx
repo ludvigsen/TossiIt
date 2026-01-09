@@ -91,41 +91,7 @@ export default function SettingsScreen() {
           Settings
         </Text>
 
-        {/* Navigation Section */}
-        <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-5 mb-5 shadow-sm`}>
-          <Text className={`text-lg font-semibold mb-4 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
-            Navigation
-          </Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-3 border-b"
-            style={{ borderBottomColor: isDark ? '#374151' : '#e5e7eb' }}
-            onPress={() => navigation.navigate('People' as never)}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-2xl mr-3">👥</Text>
-              <Text className={`text-base font-medium ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
-                People
-              </Text>
-            </View>
-            <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              →
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-3"
-            onPress={() => navigation.navigate('History' as never)}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-2xl mr-3">🕰️</Text>
-              <Text className={`text-base font-medium ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
-                History
-              </Text>
-            </View>
-            <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              →
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Navigation moved to bottom tabs + drawer */}
 
         {/* Theme Section */}
         <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-5 mb-5 shadow-sm`}>

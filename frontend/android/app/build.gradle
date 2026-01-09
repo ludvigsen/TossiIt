@@ -110,8 +110,8 @@ android {
         applicationId 'ai.tossit.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1000017
-        versionName "1.0.17"
+        versionCode 1000018
+        versionName "1.0.18"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

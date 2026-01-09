@@ -11,6 +11,7 @@ import historyRoutes from './routes/history';
 import peopleRoutes from './routes/people';
 import actionableItemsRoutes from './routes/actionable-items';
 import dashboardRoutes from './routes/dashboard';
+import personOverviewRoutes from './routes/person-overview';
 import { onRequest } from 'firebase-functions/v2/https';
 import { setGlobalOptions } from 'firebase-functions/v2/options';
 import dotenv from 'dotenv';
@@ -34,9 +35,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
 }));
 
-// Body parsers - express.json() for JSON, multer will handle multipart/form-data
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsers - increase JSON limit to support base64 image uploads from mobile.
+// Note: base64 inflates payload size by ~33% (10MB -> ~13.3MB), so we set a higher ceiling.
+// Multer still handles multipart/form-data separately.
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Serve uploaded files statically (Only works for local/filesystem, not recommended for serverless)
 // In production, we should use S3/Storage URLs directly.
@@ -58,6 +61,7 @@ app.use('/api/history', historyRoutes);
 app.use('/api/people', peopleRoutes);
 app.use('/api/actionable-items', actionableItemsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/person-overview', personOverviewRoutes);
 
 // Export for Firebase Functions (Gen 2)
 // We declare which secrets this function needs access to.

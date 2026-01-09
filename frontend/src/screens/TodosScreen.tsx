@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Alert, useColorScheme } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  useColorScheme,
+  Modal,
+  TextInput,
+} from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { getAuthHeaders } from '../utils/auth';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../utils/env';
@@ -37,31 +47,24 @@ async function saveScheduledMap(map: Record<string, string>) {
 
 export default function TodosScreen() {
   const [items, setItems] = useState<any[]>([]);
+  const [segment, setSegment] = useState<'todos' | 'info' | 'archive'>('todos');
   const [loading, setLoading] = useState(false);
+  const [people, setPeople] = useState<any[]>([]);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [formTitle, setFormTitle] = useState('');
+  const [formDescription, setFormDescription] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high' | ''>('');
+  const [formDueDate, setFormDueDate] = useState(''); // YYYY-MM-DD
+  const [formExpiresAt, setFormExpiresAt] = useState(''); // ISO or YYYY-MM-DD
+  const [formPeopleIds, setFormPeopleIds] = useState<string[]>([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const getAuthHeader = async (forceRefresh = false) => {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
-    let userInfo = await GoogleSignin.getCurrentUser();
-    if (!userInfo) {
-      try {
-        await GoogleSignin.signInSilently();
-      } catch {
-        throw new Error('Not signed in. Please sign in from the login screen.');
-      }
-      userInfo = await GoogleSignin.getCurrentUser();
-    }
-    const tokens = await GoogleSignin.getTokens(forceRefresh ? { forceRefresh: true } : undefined);
-    const bearer = tokens.idToken;
-    if (!bearer) {
-      throw new Error('No idToken available; please sign in again.');
-    }
-    return {
-      Authorization: `Bearer ${bearer}`,
-      'X-User-Id': userInfo?.user.id,
-    };
-  };
+  const tzOffsetMinutes = new Date().getTimezoneOffset();
+
+  const getAuthHeader = async (forceRefresh = false) => getAuthHeaders({ forceRefresh });
 
   const scheduleNotificationsForItems = async (items: any[]) => {
     try {
@@ -111,13 +114,41 @@ export default function TodosScreen() {
     setLoading(true);
     try {
       const headers = await getAuthHeader();
-      const res = await axios.get(`${API_URL}/actionable-items?completed=false`, { headers });
-      setItems(res.data);
-      await scheduleNotificationsForItems(res.data);
+      if (segment === 'todos') {
+        const res = await axios.get(
+          `${API_URL}/actionable-items?completed=false&kind=todo&tzOffsetMinutes=${tzOffsetMinutes}`,
+          { headers },
+        );
+        setItems(res.data);
+        await scheduleNotificationsForItems(res.data);
+      } else if (segment === 'info') {
+        const res = await axios.get(
+          `${API_URL}/actionable-items?kind=info&includeArchived=false&tzOffsetMinutes=${tzOffsetMinutes}`,
+          { headers },
+        );
+        setItems(res.data);
+      } else {
+        const res = await axios.get(
+          `${API_URL}/actionable-items/archive?tzOffsetMinutes=${tzOffsetMinutes}`,
+          { headers },
+        );
+        setItems(res.data);
+      }
     } catch (error) {
       console.error('Error fetching actionable items', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPeople = async () => {
+    try {
+      const headers = await getAuthHeader();
+      const res = await axios.get(`${API_URL}/people`, { headers });
+      setPeople(res.data || []);
+    } catch (e) {
+      // non-fatal
+      console.log('Failed to fetch people for tagging');
     }
   };
 
@@ -132,8 +163,74 @@ export default function TodosScreen() {
       })();
 
       fetchTodos();
-    }, []),
+      fetchPeople();
+    }, [segment]),
   );
+
+  const openCreate = () => {
+    setEditingItem(null);
+    setFormTitle('');
+    setFormDescription('');
+    setFormCategory(segment === 'info' ? 'school' : '');
+    setFormPriority('');
+    setFormDueDate('');
+    setFormExpiresAt('');
+    setFormPeopleIds([]);
+    setEditorOpen(true);
+  };
+
+  const openEdit = (item: any) => {
+    setEditingItem(item);
+    setFormTitle(String(item.title || ''));
+    setFormDescription(String(item.description || ''));
+    setFormCategory(String(item.category || ''));
+    setFormPriority((item.priority as any) || '');
+    setFormDueDate(item.dueDate ? String(item.dueDate).slice(0, 10) : '');
+    setFormExpiresAt(item.expiresAt ? String(item.expiresAt).slice(0, 10) : '');
+    setFormPeopleIds(Array.isArray(item.people) ? item.people.map((p: any) => p.id) : []);
+    setEditorOpen(true);
+  };
+
+  const togglePerson = (id: string) => {
+    setFormPeopleIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const submitEditor = async () => {
+    const title = formTitle.trim();
+    if (!title) {
+      Alert.alert('Missing', 'Title is required');
+      return;
+    }
+    try {
+      const headers = await getAuthHeader();
+      const kind = editingItem?.kind || (segment === 'info' ? 'info' : 'todo');
+      const payload: any = {
+        title,
+        description: formDescription.trim() || null,
+        category: formCategory.trim() || null,
+        priority: kind === 'todo' ? (formPriority || null) : null,
+        peopleIds: formPeopleIds,
+      };
+      if (kind === 'todo') {
+        payload.dueDate = formDueDate.trim() ? formDueDate.trim() : null;
+      } else if (kind === 'info') {
+        payload.expiresAt = formExpiresAt.trim() ? formExpiresAt.trim() : null;
+      }
+
+      if (editingItem) {
+        await axios.patch(`${API_URL}/actionable-items/${editingItem.id}`, payload, { headers });
+      } else {
+        await axios.post(`${API_URL}/actionable-items`, { ...payload, kind }, { headers });
+      }
+
+      setEditorOpen(false);
+      setEditingItem(null);
+      fetchTodos();
+    } catch (e: any) {
+      console.error('Failed to save item', e);
+      Alert.alert('Error', e?.response?.data?.error || 'Failed to save');
+    }
+  };
 
   const toggleComplete = async (item: any, completed: boolean) => {
     try {
@@ -166,6 +263,28 @@ export default function TodosScreen() {
     }
   };
 
+  const archiveItem = async (item: any) => {
+    try {
+      const headers = await getAuthHeader();
+      await axios.patch(`${API_URL}/actionable-items/${item.id}/archive`, {}, { headers });
+      fetchTodos();
+    } catch (error) {
+      console.error('Error archiving item', error);
+      Alert.alert('Error', 'Failed to archive item');
+    }
+  };
+
+  const unarchiveItem = async (item: any) => {
+    try {
+      const headers = await getAuthHeader();
+      await axios.patch(`${API_URL}/actionable-items/${item.id}/unarchive`, {}, { headers });
+      fetchTodos();
+    } catch (error) {
+      console.error('Error unarchiving item', error);
+      Alert.alert('Error', 'Failed to unarchive item');
+    }
+  };
+
   const renderItem = (item: any) => {
     const due = item.dueDate ? new Date(item.dueDate) : null;
     const overdue = due && due.getTime() < Date.now();
@@ -193,6 +312,16 @@ export default function TodosScreen() {
           <Text className={`text-base font-semibold flex-1 mr-2 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
             {item.title}
           </Text>
+          {segment !== 'archive' && (
+            <TouchableOpacity
+              onPress={() => openEdit(item)}
+              className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2 py-1 rounded-xl`}
+            >
+              <Text className={`${isDark ? 'text-gray-200' : 'text-gray-800'} text-xs font-semibold`}>
+                Edit
+              </Text>
+            </TouchableOpacity>
+          )}
           {item.category && (
             <View className="bg-blue-100 px-2 py-1 rounded-xl">
               <Text className="text-xs font-semibold text-blue-700">{item.category}</Text>
@@ -220,22 +349,48 @@ export default function TodosScreen() {
         </View>
 
         {item.people && item.people.length > 0 && (
-          <View className="flex-row flex-wrap gap-2 mb-2">
-            {item.people.map((p: any) => (
-              <View key={p.id} className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2 py-1 rounded-xl`}>
-                <Text className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{p.name}</Text>
-              </View>
-            ))}
+          <View className="mb-2">
+            <Text className={`text-xs font-semibold mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              For:
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {item.people.map((p: any) => (
+                <View key={p.id} className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2 py-1 rounded-xl`}>
+                  <Text className={`text-xs font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{p.name}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
         <View className="flex-row justify-end mt-1">
-          <TouchableOpacity
-            className="bg-green-500 px-3 py-2 rounded-lg"
-            onPress={() => toggleComplete(item, true)}
-          >
-            <Text className="text-white text-sm font-semibold">Mark Done</Text>
-          </TouchableOpacity>
+          {segment === 'archive' ? (
+            <TouchableOpacity
+              className="bg-blue-500 px-3 py-2 rounded-lg"
+              onPress={() => unarchiveItem(item)}
+            >
+              <Text className="text-white text-sm font-semibold">Unarchive</Text>
+            </TouchableOpacity>
+          ) : (
+            <View className="flex-row gap-2">
+              {segment === 'todos' && (
+                <TouchableOpacity
+                  className="bg-green-500 px-3 py-2 rounded-lg"
+                  onPress={() => toggleComplete(item, true)}
+                >
+                  <Text className="text-white text-sm font-semibold">Mark Done</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                className={`${isDark ? 'bg-gray-700' : 'bg-gray-200'} px-3 py-2 rounded-lg`}
+                onPress={() => archiveItem(item)}
+              >
+                <Text className={`${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm font-semibold`}>
+                  Archive
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -243,16 +398,68 @@ export default function TodosScreen() {
 
   return (
     <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <View className="px-4 pt-4 pb-3">
+        <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-1 rounded-2xl flex-row`}>
+          <TouchableOpacity
+            className={`flex-1 py-2 rounded-2xl items-center ${segment === 'todos' ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''}`}
+            onPress={() => setSegment('todos')}
+          >
+            <Text className={`${segment === 'todos' ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-semibold`}>
+              Todos
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 py-2 rounded-2xl items-center ${segment === 'info' ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''}`}
+            onPress={() => setSegment('info')}
+          >
+            <Text className={`${segment === 'info' ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-semibold`}>
+              Info
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 py-2 rounded-2xl items-center ${segment === 'archive' ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''}`}
+            onPress={() => setSegment('archive')}
+          >
+            <Text className={`${segment === 'archive' ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-semibold`}>
+              Archive
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {(segment === 'todos' || segment === 'info') && (
+        <View className="px-4 pb-2">
+          <TouchableOpacity
+            className="bg-blue-600 py-3 rounded-2xl items-center"
+            onPress={openCreate}
+          >
+            <Text className="text-white font-extrabold">
+              {segment === 'todos' ? '+ New Todo' : '+ New Info'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {loading && items.length === 0 ? (
         <ActivityIndicator size="large" className="mt-12" />
       ) : items.length === 0 ? (
         <View className="flex-1 justify-center items-center p-10">
-          <Text className="text-6xl mb-4">✅</Text>
-          <Text className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            No open todos
+          <Text className="text-6xl mb-4">
+            {segment === 'todos' ? '✅' : segment === 'info' ? 'ℹ️' : '🗄️'}
+          </Text>
+          <Text className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            {segment === 'todos'
+              ? 'No open todos'
+              : segment === 'info'
+                ? 'No active info'
+                : 'Archive is empty'}
           </Text>
           <Text className={`text-sm text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-            When Gemini finds actionable items in your notes, they will show up here.
+            {segment === 'todos'
+              ? 'When Gemini finds actionable items in your notes, they will show up here.'
+              : segment === 'info'
+                ? 'Time-bounded context will appear here until it expires.'
+                : 'Completed, expired, and stale items will show up here.'}
           </Text>
         </View>
       ) : (
@@ -260,6 +467,122 @@ export default function TodosScreen() {
           {items.map(renderItem)}
         </ScrollView>
       )}
+
+      <Modal visible={editorOpen} transparent animationType="slide" onRequestClose={() => setEditorOpen(false)}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-t-3xl p-5 max-h-[85%]`}>
+            <View className="flex-row items-center justify-between">
+              <Text className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {editingItem ? 'Edit' : 'New'} {editingItem?.kind === 'info' || segment === 'info' ? 'Info' : 'Todo'}
+              </Text>
+              <TouchableOpacity onPress={() => setEditorOpen(false)}>
+                <Text className={`${isDark ? 'text-gray-300' : 'text-gray-600'} font-bold`}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView className="mt-4">
+              <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1`}>Title *</Text>
+              <TextInput
+                value={formTitle}
+                onChangeText={setFormTitle}
+                placeholder="What needs doing?"
+                placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+                className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
+              />
+
+              <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1 mt-3`}>Description</Text>
+              <TextInput
+                value={formDescription}
+                onChangeText={setFormDescription}
+                placeholder="Optional details…"
+                placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+                multiline
+                className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
+              />
+
+              <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1 mt-3`}>Category</Text>
+              <TextInput
+                value={formCategory}
+                onChangeText={setFormCategory}
+                placeholder="school, family, work…"
+                placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+                className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
+              />
+
+              {(editingItem?.kind === 'todo' || (!editingItem && segment === 'todos')) && (
+                <>
+                  <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1 mt-3`}>Due date (YYYY-MM-DD)</Text>
+                  <TextInput
+                    value={formDueDate}
+                    onChangeText={setFormDueDate}
+                    placeholder="2026-01-08"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+                    className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
+                  />
+
+                  <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-2 mt-3`}>Priority</Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {(['high', 'medium', 'low'] as const).map((p) => {
+                      const selected = formPriority === p;
+                      return (
+                        <TouchableOpacity
+                          key={p}
+                          onPress={() => setFormPriority(selected ? '' : p)}
+                          className={`${selected ? 'bg-blue-600' : isDark ? 'bg-gray-800' : 'bg-gray-100'} px-3 py-2 rounded-2xl`}
+                        >
+                          <Text className={`${selected ? 'text-white' : isDark ? 'text-gray-200' : 'text-gray-800'} font-bold text-xs`}>
+                            {p}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+
+              {(editingItem?.kind === 'info' || (!editingItem && segment === 'info')) && (
+                <>
+                  <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1 mt-3`}>Expires (YYYY-MM-DD)</Text>
+                  <TextInput
+                    value={formExpiresAt}
+                    onChangeText={setFormExpiresAt}
+                    placeholder="2026-01-08"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+                    className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
+                  />
+                </>
+              )}
+
+              <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-2 mt-4`}>People</Text>
+              {people.length === 0 ? (
+                <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>No people yet.</Text>
+              ) : (
+                <View className="flex-row flex-wrap gap-2">
+                  {people.map((p: any) => {
+                    const selected = formPeopleIds.includes(p.id);
+                    return (
+                      <TouchableOpacity
+                        key={p.id}
+                        onPress={() => togglePerson(p.id)}
+                        className={`${selected ? 'bg-blue-600' : isDark ? 'bg-gray-800' : 'bg-gray-100'} px-3 py-2 rounded-2xl`}
+                      >
+                        <Text className={`${selected ? 'text-white' : isDark ? 'text-gray-200' : 'text-gray-800'} font-bold text-xs`}>
+                          {p.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
+              <TouchableOpacity className="mt-5 bg-blue-600 py-4 rounded-2xl items-center" onPress={submitEditor}>
+                <Text className="text-white font-extrabold">Save</Text>
+              </TouchableOpacity>
+              <View className="h-8" />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

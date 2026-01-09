@@ -8,6 +8,7 @@ import { useShareIntentContext } from 'expo-share-intent';
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { API_URL } from '../utils/env';
+import { getAuthHeaders } from '../utils/auth';
 
 export default function CaptureScreen() {
   const [text, setText] = useState('');
@@ -44,29 +45,7 @@ export default function CaptureScreen() {
     }
   }, [hasShareIntent, shareIntent, shareConsumed, resetShareIntent]);
 
-  const getAuthHeader = async (forceRefresh = false) => {
-    // Never show dialogs from background/initialization flows
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
-    let userInfo = await GoogleSignin.getCurrentUser();
-    if (!userInfo) {
-      try {
-        await GoogleSignin.signInSilently();
-      } catch {
-        // Do NOT trigger interactive sign-in here (can crash on cold start).
-        throw new Error('Not signed in. Please sign in from the login screen.');
-      }
-      userInfo = await GoogleSignin.getCurrentUser();
-    }
-    const tokens = await GoogleSignin.getTokens(forceRefresh ? { forceRefresh: true } : undefined);
-    const bearer = tokens.idToken;
-    if (!bearer) {
-      throw new Error('No idToken available; please sign in again.');
-    }
-    return {
-      'Authorization': `Bearer ${bearer}`,
-      'X-User-Id': userInfo?.user.id
-    };
-  };
+  const getAuthHeader = async (forceRefresh = false) => getAuthHeaders({ forceRefresh });
 
   const ensureMediaPermissions = async () => {
     const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();

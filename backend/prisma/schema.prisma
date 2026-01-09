@@ -58,6 +58,7 @@ model SmartInbox {
 
   user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   dump RawDump @relation(fields: [dumpId], references: [id], onDelete: Cascade)
+  people Person[] @relation("InboxPeople")
 
   @@map("smart_inbox")
 }
@@ -93,12 +94,15 @@ model Person {
   // For teammates: { team, position, sport, ... }
   // etc.
   notes       String?  // Additional context about this person
+  isImportant Boolean  @default(false) @map("is_important")
+  pinnedOrder Int?     @map("pinned_order")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   dumps       RawDump[]       @relation("DumpPeople")
   events      Event[]         @relation("EventPeople")
   actionItems ActionableItem[] @relation("ActionItemPeople")
+  inboxItems  SmartInbox[]    @relation("InboxPeople")
 
   @@unique([userId, name])
   @@map("people")
@@ -110,10 +114,14 @@ model ActionableItem {
   dumpId      String?   @map("dump_id") @db.Uuid
   title       String
   description String?   @db.Text
+  kind        String    @default("todo") // "todo" | "info"
   dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
   completed   Boolean   @default(false)
   priority    String?   // "high", "medium", "low"
   category    String?   // e.g., "school", "family", "work"
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(6)
+  archivedReason String? @map("archived_reason") // "overdue_12h" | "expired" | "user_archived"
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Alert, Modal, TextInput, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { getAuthHeaders } from '../utils/auth';
 import { API_URL } from '../utils/env';
 
 // Helper to get base URL for images
@@ -26,27 +26,7 @@ export default function InboxScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const getAuthHeader = async (forceRefresh = false) => {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: false });
-      let userInfo = await GoogleSignin.getCurrentUser();
-      if (!userInfo) {
-        try {
-          await GoogleSignin.signInSilently();
-        } catch {
-          throw new Error('Not signed in. Please sign in from the login screen.');
-        }
-        userInfo = await GoogleSignin.getCurrentUser();
-      }
-      const tokens = await GoogleSignin.getTokens(forceRefresh ? { forceRefresh: true } : undefined);
-      const bearer = tokens.idToken;
-      if (!bearer) {
-        throw new Error('No idToken available; please sign in again.');
-      }
-      return { 
-          'Authorization': `Bearer ${bearer}`,
-          'X-User-Id': userInfo?.user.id 
-      };
-  };
+  const getAuthHeader = async (forceRefresh = false) => getAuthHeaders({ forceRefresh });
 
   const fetchInbox = async () => {
     setLoading(true);

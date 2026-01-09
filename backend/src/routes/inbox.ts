@@ -22,6 +22,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         }
       },
       include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
         dump: {
           select: {
             id: true,

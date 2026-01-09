@@ -158,7 +158,15 @@ export const processRawDump = async (dumpId: string) => {
     for (const personData of people) {
       // Destructure potential mapping hints from Gemini
       const anyPerson = personData as any;
-      const mappedId: string | undefined = anyPerson.person_id || anyPerson.personId;
+      const rawMappedId: unknown = anyPerson.person_id ?? anyPerson.personId;
+      const mappedId =
+        typeof rawMappedId === 'string' &&
+        rawMappedId.trim() !== '' &&
+        rawMappedId.trim().toLowerCase() !== 'null' &&
+        // UUID v4/v1-ish general match (Prisma expects uuid)
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawMappedId.trim())
+          ? rawMappedId.trim()
+          : undefined;
       const isNew: boolean | undefined = anyPerson.is_new;
 
       try {
@@ -186,24 +194,32 @@ export const processRawDump = async (dumpId: string) => {
         // Helper to build metadata from personData
         const buildMetadata = () => {
           const metadata: any = {};
+          // If Gemini provided a nested metadata object, merge it first.
+          if (anyPerson.metadata && typeof anyPerson.metadata === 'object' && !Array.isArray(anyPerson.metadata)) {
+            Object.assign(metadata, anyPerson.metadata);
+          }
           if (anyPerson.grade) metadata.grade = anyPerson.grade;
           if (anyPerson.school) metadata.school = anyPerson.school;
           if (anyPerson.birthDate) metadata.birthDate = anyPerson.birthDate;
           Object.keys(anyPerson).forEach((key) => {
-            if (!['name', 'relationship', 'category', 'notes', 'person_id', 'personId', 'is_new'].includes(key) && anyPerson[key]) {
+            if (
+              !['name', 'relationship', 'category', 'notes', 'person_id', 'personId', 'is_new', 'metadata'].includes(key) &&
+              anyPerson[key]
+            ) {
               metadata[key] = anyPerson[key];
             }
           });
           return metadata;
         };
 
-        // 3) If still no person and Gemini says this is a new one, create it
-        if (!person && (isNew || (!mappedId && !personData.name))) {
+        // 3) If still no person, create it (we already tried matching by id + (userId,name)).
+        // We do NOT rely on Gemini setting is_new correctly; it can be missing.
+        if (!person && personData.name) {
           const metadata = buildMetadata();
           person = await prisma.person.create({
             data: {
               userId: dump.userId,
-              name: personData.name || 'Unknown',
+              name: personData.name,
               relationship: personData.relationship || null,
               category: personData.category || null,
               metadata: Object.keys(metadata).length > 0 ? metadata : null,
@@ -247,21 +263,57 @@ export const processRawDump = async (dumpId: string) => {
       }
     }
 
-    // Process Actionable Items
+    // Process Items (todos + info)
+    // Preload the people attached to this dump to drive default linking logic.
+    const attachedPeople = personIds.length
+      ? await prisma.person.findMany({
+          where: { id: { in: personIds }, userId: dump.userId },
+          select: { id: true, name: true, relationship: true, category: true },
+        })
+      : [];
+
+    const childPersonIds = attachedPeople
+      .filter((p) => {
+        const rel = (p.relationship || '').toLowerCase();
+        return rel === 'child' || rel === 'son' || rel === 'daughter';
+      })
+      .map((p) => p.id);
+
+    const dumpCategory = (proposedData as any)?.category || null;
+
     for (const actionItem of actionable_items) {
       if (!actionItem.title) continue;
       
       try {
-        const actionPeopleIds: string[] = [];
-        // Link people to actionable item if they're mentioned in the item description
-        if (actionItem.description) {
-          for (const personId of personIds) {
-            const person = await prisma.person.findUnique({ where: { id: personId } });
-            if (person && actionItem.description.toLowerCase().includes(person.name.toLowerCase())) {
-              actionPeopleIds.push(personId);
-            }
-          }
+        let actionPeopleIds: string[] = [];
+
+        // 1) Prefer explicit linkage from AI, but only keep ids that exist for this user/dump.
+        const aiPeopleIds = Array.isArray((actionItem as any).people_ids) ? (actionItem as any).people_ids : [];
+        if (aiPeopleIds.length > 0) {
+          actionPeopleIds = aiPeopleIds
+            .filter((pid: any) => typeof pid === 'string')
+            .map((pid: string) => pid.trim())
+            .filter((pid: string) => personIds.includes(pid));
         }
+
+        // 2) If nothing explicit, try name matching in description against attached people (cheap).
+        if (actionPeopleIds.length === 0 && actionItem.description) {
+          const desc = actionItem.description.toLowerCase();
+          actionPeopleIds = attachedPeople
+            .filter((p) => p.name && desc.includes(p.name.toLowerCase()))
+            .map((p) => p.id);
+        }
+
+        // 3) If still nothing and this looks like a school item, default-link to child(ren) on this dump.
+        const itemCategory = (actionItem as any).category || null;
+        const isSchoolContext = itemCategory === 'school' || dumpCategory === 'school';
+        if (actionPeopleIds.length === 0 && isSchoolContext && childPersonIds.length > 0) {
+          actionPeopleIds = [...childPersonIds];
+        }
+
+        const kind = ((actionItem as any).kind === 'info' ? 'info' : 'todo') as 'info' | 'todo';
+        const expiresAtRaw = (actionItem as any).expires_at as string | undefined;
+        const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
 
         await prisma.actionableItem.create({
           data: {
@@ -269,7 +321,9 @@ export const processRawDump = async (dumpId: string) => {
             dumpId: dumpId,
             title: actionItem.title,
             description: actionItem.description || null,
+            kind,
             dueDate: actionItem.due_date ? new Date(actionItem.due_date) : null,
+            expiresAt,
             priority: actionItem.priority || null,
             category: actionItem.category || null,
             people: {
@@ -277,7 +331,7 @@ export const processRawDump = async (dumpId: string) => {
             }
           }
         });
-        console.log(`Created actionable item: ${actionItem.title}`);
+        console.log(`Created item (${kind}): ${actionItem.title}`);
       } catch (error) {
         console.error(`Error creating actionable item:`, error);
       }
@@ -366,7 +420,10 @@ export const processRawDump = async (dumpId: string) => {
             } as any,
             aiConfidenceScore: confidence_score,
             flagReason: flagReason,
-            status: status
+            status: status,
+            people: {
+              connect: personIds.map((id) => ({ id })),
+            },
           }
         });
     }
