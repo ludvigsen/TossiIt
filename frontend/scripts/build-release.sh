@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build Release AAB Script for TossIt
+# Build Release AAB Script for Organizel
 # Usage: ./scripts/build-release.sh [patch|minor|major]
 # Default: patch
 
@@ -13,7 +13,7 @@ if [[ ! "$VERSION_BUMP" =~ ^(patch|minor|major)$ ]]; then
     exit 1
 fi
 
-echo "🚀 Building Release AAB for TossIt"
+echo "🚀 Building Release AAB for Organizel"
 echo "📦 Version bump: $VERSION_BUMP"
 echo ""
 
@@ -52,6 +52,13 @@ echo "   Calculated versionCode: $VERSION_CODE"
 echo "   Calculated versionName: $NEW_VERSION"
 echo ""
 
+# Signing defaults (new app id: com.organizel.app)
+# You can override these via env vars:
+#   RELEASE_STORE_PASSWORD, RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS
+RELEASE_STORE_PASSWORD=${RELEASE_STORE_PASSWORD:-organizel123}
+RELEASE_KEY_PASSWORD=${RELEASE_KEY_PASSWORD:-$RELEASE_STORE_PASSWORD}
+RELEASE_KEY_ALIAS=${RELEASE_KEY_ALIAS:-release}
+
 # Step 4: Backup release.keystore before prebuild (it gets deleted)
 KEYSTORE_BACKUP_DIR="$FRONTEND_DIR/keystores"
 KEYSTORE_SOURCE="$FRONTEND_DIR/android/app/release.keystore"
@@ -77,9 +84,9 @@ if [ -f "$KEYSTORE_BACKUP" ]; then
 elif [ ! -f "$KEYSTORE_SOURCE" ]; then
     echo "⚠️  WARNING: release.keystore not found!"
     echo "   Generating new release.keystore..."
-    keytool -genkey -v -keystore "$KEYSTORE_SOURCE" -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass tossit123 -keypass tossit123 -dname "CN=TossIt, OU=TossIt, O=TossIt, L=Unknown, ST=Unknown, C=US"
+    keytool -genkey -v -keystore "$KEYSTORE_SOURCE" -alias "$RELEASE_KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -storepass "$RELEASE_STORE_PASSWORD" -keypass "$RELEASE_KEY_PASSWORD" -dname "CN=Organizel, OU=Organizel, O=Organizel, L=Unknown, ST=Unknown, C=US"
     echo "   ⚠️  IMPORTANT: This is a NEW keystore. You'll need to:"
-    echo "      1. Get the new SHA-1: keytool -list -v -keystore $KEYSTORE_SOURCE -alias release -storepass tossit123"
+    echo "      1. Get the new SHA-1: keytool -list -v -keystore $KEYSTORE_SOURCE -alias $RELEASE_KEY_ALIAS -storepass $RELEASE_STORE_PASSWORD"
     echo "      2. Add it to Firebase Console"
     echo "      3. Update Google Play Console if you've already uploaded an AAB"
 fi
@@ -148,9 +155,9 @@ if ! grep -q "signingConfigs.release" "$GRADLE_FILE"; then
             /^    }/ i\
         release {\
             storeFile file('\''release.keystore'\'')\
-            storePassword '\''tossit123'\''\
-            keyAlias '\''release'\''\
-            keyPassword '\''tossit123'\''\
+            storePassword releaseStorePassword\
+            keyAlias releaseKeyAlias\
+            keyPassword releaseKeyPassword\
         }
         }' "$GRADLE_FILE"
     else
@@ -158,9 +165,9 @@ if ! grep -q "signingConfigs.release" "$GRADLE_FILE"; then
             /^    }/ i\
         release {\
             storeFile file('\''release.keystore'\'')\
-            storePassword '\''tossit123'\''\
-            keyAlias '\''release'\''\
-            keyPassword '\''tossit123'\''\
+            storePassword releaseStorePassword\
+            keyAlias releaseKeyAlias\
+            keyPassword releaseKeyPassword\
         }
         }' "$GRADLE_FILE"
     fi
@@ -215,9 +222,9 @@ if ! grep -q "Remove camera and audio permissions from merged manifest" "$GRADLE
 GRADLE_FIX_EOF
     # Insert after namespace line
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "/namespace 'ai.tossit.app'/r $TEMP_GRADLE_FIX" "$GRADLE_FILE"
+        sed -i '' "/namespace 'com.organizel.app'/r $TEMP_GRADLE_FIX" "$GRADLE_FILE"
     else
-        sed -i "/namespace 'ai.tossit.app'/r $TEMP_GRADLE_FIX" "$GRADLE_FILE"
+        sed -i "/namespace 'com.organizel.app'/r $TEMP_GRADLE_FIX" "$GRADLE_FILE"
     fi
     rm "$TEMP_GRADLE_FIX"
     echo "   ✅ Added Gradle task to remove camera and audio permissions"

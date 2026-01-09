@@ -2,7 +2,7 @@ import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { View } from 'react-native';
 
-export const TossItLogo = ({ width = 40, height = 40, color = "#2196F3" }) => (
+export const OrganizelLogo = ({ width = 40, height = 40, color = "#2196F3" }) => (
   <View style={{ width, height }}>
     <Svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
       {/* Background Circle */}

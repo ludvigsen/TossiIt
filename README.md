@@ -1,6 +1,6 @@
-# AI Life OS ("The Dump")
+# Organizel
 
-A "Second Brain" mobile application that accepts unstructured data "dumps" (screenshots, text, voice), processes them using Google Gemini 1.5 Flash (or 3.0 Preview), and organizes them into a structured internal calendar/reminder system with Google Workspace integration.
+A mobile application that accepts unstructured notes (screenshots, text, voice), processes them using Google Gemini, and organizes them into a structured calendar/todo system with Google Workspace integration.
 
 ## Project Architecture
 

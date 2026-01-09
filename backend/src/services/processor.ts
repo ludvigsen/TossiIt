@@ -9,7 +9,7 @@ export const processRawDump = async (dumpId: string) => {
   try {
     console.log(`Processing dump ${dumpId}...`);
     
-    // 1. Fetch the dump
+    // 1. Fetch the captured entry
     const dump = await prisma.rawDump.findUnique({
       where: { id: dumpId }
     });

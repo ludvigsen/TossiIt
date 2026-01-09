@@ -10,9 +10,9 @@ import Social
 import UIKit
 
 class ShareViewController: UIViewController {
-  let hostAppGroupIdentifier = "group.com.tossit.app"
-  let shareProtocol = "tossit"
-  let sharedKey = "tossitShareKey"
+  let hostAppGroupIdentifier = "group.com.organizel.app"
+  let shareProtocol = "organizel"
+  let sharedKey = "organizelShareKey"
   var sharedMedia: [SharedMediaFile] = []
   var sharedWebUrl: [WebUrl] = []
   var sharedText: [String] = []

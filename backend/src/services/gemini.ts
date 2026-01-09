@@ -85,7 +85,7 @@ const model = genAI.getGenerativeModel({
             },
             required: ["title"]
           },
-          description: "Items extracted from the dump. Use kind=todo for actionable tasks and kind=info for time-bounded context. Always include expires_at for info."
+          description: "Items extracted from the captured entry. Use kind=todo for actionable tasks and kind=info for time-bounded context. Always include expires_at for info."
         },
         full_text: {
           type: SchemaType.STRING,

@@ -87,7 +87,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'ai.tossit.app'
+    namespace 'com.organizel.app'
     
     // Remove camera and audio permissions from merged manifest (not used by app)
     applicationVariants.all { variant ->
@@ -107,11 +107,11 @@ android {
         }
     }
     defaultConfig {
-        applicationId 'ai.tossit.app'
+        applicationId 'com.organizel.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1000018
-        versionName "1.0.18"
+        versionCode 1000019
+        versionName "1.0.19"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -124,9 +124,9 @@ android {
         }
         release {
             storeFile file('release.keystore')
-            storePassword 'tossit123'
-            keyAlias 'release'
-            keyPassword 'tossit123'
+            storePassword releaseStorePassword
+            keyAlias releaseKeyAlias
+            keyPassword releaseKeyPassword
         }
     }
     buildTypes {

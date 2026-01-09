@@ -1,6 +1,6 @@
 {
-  "name": "tossit",
-  "version": "1.0.18",
+  "name": "organizel",
+  "version": "1.0.19",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

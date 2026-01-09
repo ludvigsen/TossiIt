@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "TossIt.app"
-               BlueprintName = "TossIt"
-               ReferencedContainer = "container:TossIt.xcodeproj">
+               BuildableName = "Organizel.app"
+               BlueprintName = "Organizel"
+               ReferencedContainer = "container:Organizel.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "TossItTests.xctest"
-               BlueprintName = "TossItTests"
-               ReferencedContainer = "container:TossIt.xcodeproj">
+               BuildableName = "OrganizelTests.xctest"
+               BlueprintName = "OrganizelTests"
+               ReferencedContainer = "container:Organizel.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TossIt.app"
-            BlueprintName = "TossIt"
-            ReferencedContainer = "container:TossIt.xcodeproj">
+            BuildableName = "Organizel.app"
+            BlueprintName = "Organizel"
+            ReferencedContainer = "container:Organizel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TossIt.app"
-            BlueprintName = "TossIt"
-            ReferencedContainer = "container:TossIt.xcodeproj">
+            BuildableName = "Organizel.app"
+            BlueprintName = "Organizel"
+            ReferencedContainer = "container:Organizel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

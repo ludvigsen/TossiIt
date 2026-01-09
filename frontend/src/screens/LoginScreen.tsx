@@ -77,7 +77,7 @@ export default function LoginScreen({
   return (
     <View className={`flex-1 justify-center items-center p-5 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
       <Text className={`text-3xl font-bold mb-12 ${isDark ? 'text-gray-50' : 'text-gray-900'}`}>
-        Welcome to TossIt
+        Welcome to Organizel
       </Text>
       <TouchableOpacity
         onPress={signIn}

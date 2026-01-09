@@ -7,38 +7,38 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03D61DC5B3894B0E82C61F5F /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 23A615334D954CB6B568F325 /* MainInterface.storyboard */; };
+		09063FD50BD2D37F0D82748F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5F216F452975D95066D03F /* ExpoModulesProvider.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		14E32051D40243B18C5F95DA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E069CFBAA98848A9A1D823CE /* PrivacyInfo.xcprivacy */; };
+		1876249AA4CCC6AD8BB5EA06 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E069CFBAA98848A9A1D823CE /* PrivacyInfo.xcprivacy */; };
+		1DBC4B57E09C41DC84AB0997 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19CD73C487CB4E46A000738B /* ShareViewController.swift */; };
+		29A31C13DFCF497896131889 /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = 95B7168BFAAA4EBA8B6F9247 /* ShareExtensionPreprocessor.js */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6BC75D4E86F04E8687BBA757 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */; };
+		A328EE55006CC90040276009 /* Pods_Organizel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 842336042B3E8E282110DED1 /* Pods_Organizel.framework */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		C2D41EC46B8B4B17AA21637B /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = 329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */; };
-		C69D0C4DF5584A728E4BAF4E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D958B7B7BC3C4F3697267980 /* ShareViewController.swift */; };
-		DA4FDCB272E9E5040C7841A2 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775ED4D3B9BAD6F1240D6693 /* ExpoModulesProvider.swift */; };
-		E02DBDF7C0884A1E00AA1005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */; };
-		E17FEF737954E89B2E28E652 /* Pods_TossIt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 952FB4DA3B510EBAE9062E59 /* Pods_TossIt.framework */; };
-		EB283F5B3852400AB1BF5CBE /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = B2D0EE43023248CA81C822D3 /* ShareExtension.appex */; };
-		EC59FAFB24924B879B3DB23A /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84378499FA254687B7B7AC02 /* MainInterface.storyboard */; };
+		BD5BA197AF4A461081381E91 /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = F16E53B4B6B647A684E60B3D /* ShareExtension.appex */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		F6BF4A6289F5494EAE9CBF48 /* PBXContainerItemProxy */ = {
+		D9A2B5175A634E2C9BA21426 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 72734492C97C4280A56207D2;
+			remoteGlobalIDString = 5224A2832BD1466281C33B2D;
 			remoteInfo = ShareExtension;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		BF64393F9D6B407E92ED799A /* Copy Files */ = {
+		9EFD10E3E4384B2BB872D837 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				EB283F5B3852400AB1BF5CBE /* ShareExtension.appex in Copy Files */,
+				BD5BA197AF4A461081381E91 /* ShareExtension.appex in Copy Files */,
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,25 +46,25 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		02EB61C0279F0CEAB1323BA5 /* Pods-TossIt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TossIt.release.xcconfig"; path = "Target Support Files/Pods-TossIt/Pods-TossIt.release.xcconfig"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* TossIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TossIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = TossIt/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = TossIt/Info.plist; sourceTree = "<group>"; };
-		2882AB70E8AA4C65AC160AC3 /* ShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = ShareExtension.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
-		329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = ShareExtensionPreprocessor.js; path = ShareExtensionPreprocessor.js; sourceTree = "<group>"; };
-		54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = PrivacyInfo.xcprivacy; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		775ED4D3B9BAD6F1240D6693 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-TossIt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		7F828EF93AC49E3DCE7142C9 /* Pods-TossIt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TossIt.debug.xcconfig"; path = "Target Support Files/Pods-TossIt/Pods-TossIt.debug.xcconfig"; sourceTree = "<group>"; };
-		84378499FA254687B7B7AC02 /* MainInterface.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = MainInterface.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
-		952FB4DA3B510EBAE9062E59 /* Pods_TossIt.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TossIt.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = TossIt/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B2D0EE43023248CA81C822D3 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = ShareExtension.appex; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		08089F1A922CC7D5C9602441 /* Pods-Organizel.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Organizel.debug.xcconfig"; path = "Target Support Files/Pods-Organizel/Pods-Organizel.debug.xcconfig"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Organizel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Organizel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Organizel/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Organizel/Info.plist; sourceTree = "<group>"; };
+		19CD73C487CB4E46A000738B /* ShareViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		23A615334D954CB6B568F325 /* MainInterface.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = MainInterface.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
+		2A5F216F452975D95066D03F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Organizel/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		5A1C1A0B2B411ED0773DDC0D /* Pods-Organizel.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Organizel.release.xcconfig"; path = "Target Support Files/Pods-Organizel/Pods-Organizel.release.xcconfig"; sourceTree = "<group>"; };
+		7B905FE6497D4A3D90804747 /* ShareExtension-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "ShareExtension-Info.plist"; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; };
+		842336042B3E8E282110DED1 /* Pods_Organizel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Organizel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		95B7168BFAAA4EBA8B6F9247 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = ShareExtensionPreprocessor.js; path = ShareExtensionPreprocessor.js; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Organizel/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D958B7B7BC3C4F3697267980 /* ShareViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
-		E9933EA74FD84320B6E14299 /* ShareExtension-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "ShareExtension-Info.plist"; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; };
+		E069CFBAA98848A9A1D823CE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = PrivacyInfo.xcprivacy; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = TossIt/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* TossIt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "TossIt-Bridging-Header.h"; path = "TossIt/TossIt-Bridging-Header.h"; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Organizel/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* Organizel-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Organizel-Bridging-Header.h"; path = "Organizel/Organizel-Bridging-Header.h"; sourceTree = "<group>"; };
+		F16E53B4B6B647A684E60B3D /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = ShareExtension.appex; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F278F1DCE2BA46E5BAA4CF4A /* ShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = ShareExtension.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,11 +72,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E17FEF737954E89B2E28E652 /* Pods_TossIt.framework in Frameworks */,
+				A328EE55006CC90040276009 /* Pods_Organizel.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8BE43AA3376E4F93BC025EFD /* Frameworks */ = {
+		F65F0B8F9AD143AE8799BC04 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -86,26 +86,42 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* TossIt */ = {
+		0B1D28D3F775531290BC5BE1 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				57023067EED09EDA4B2E6F62 /* Organizel */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		13B07FAE1A68108700A75B9A /* Organizel */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* TossIt-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* Organizel-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 			);
-			name = TossIt;
+			name = Organizel;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				952FB4DA3B510EBAE9062E59 /* Pods_TossIt.framework */,
+				842336042B3E8E282110DED1 /* Pods_Organizel.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		57023067EED09EDA4B2E6F62 /* Organizel */ = {
+			isa = PBXGroup;
+			children = (
+				2A5F216F452975D95066D03F /* ExpoModulesProvider.swift */,
+			);
+			name = Organizel;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -118,13 +134,13 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* TossIt */,
+				13B07FAE1A68108700A75B9A /* Organizel */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				C6F05813F379418787244DE4 /* ShareExtension */,
-				BBC33BF40AA6F8BE7395E2B0 /* Pods */,
-				F88F8651CB6382279958CC78 /* ExpoModulesProviders */,
+				BA2DBFD4D224456AAB31FC4D /* ShareExtension */,
+				86F6AADADF18CCFE55C925F0 /* Pods */,
+				0B1D28D3F775531290BC5BE1 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -134,18 +150,34 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* TossIt.app */,
-				B2D0EE43023248CA81C822D3 /* ShareExtension.appex */,
+				13B07F961A680F5B00A75B9A /* Organizel.app */,
+				F16E53B4B6B647A684E60B3D /* ShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		ACF8823D39638C1AD4D16E00 /* TossIt */ = {
+		86F6AADADF18CCFE55C925F0 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				775ED4D3B9BAD6F1240D6693 /* ExpoModulesProvider.swift */,
+				08089F1A922CC7D5C9602441 /* Pods-Organizel.debug.xcconfig */,
+				5A1C1A0B2B411ED0773DDC0D /* Pods-Organizel.release.xcconfig */,
 			);
-			name = TossIt;
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		BA2DBFD4D224456AAB31FC4D /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				19CD73C487CB4E46A000738B /* ShareViewController.swift */,
+				23A615334D954CB6B568F325 /* MainInterface.storyboard */,
+				95B7168BFAAA4EBA8B6F9247 /* ShareExtensionPreprocessor.js */,
+				E069CFBAA98848A9A1D823CE /* PrivacyInfo.xcprivacy */,
+				7B905FE6497D4A3D90804747 /* ShareExtension-Info.plist */,
+				F278F1DCE2BA46E5BAA4CF4A /* ShareExtension.entitlements */,
+			);
+			name = ShareExtension;
+			path = ShareExtension;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -154,75 +186,43 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = TossIt/Supporting;
-			sourceTree = "<group>";
-		};
-		BBC33BF40AA6F8BE7395E2B0 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				7F828EF93AC49E3DCE7142C9 /* Pods-TossIt.debug.xcconfig */,
-				02EB61C0279F0CEAB1323BA5 /* Pods-TossIt.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		C6F05813F379418787244DE4 /* ShareExtension */ = {
-			isa = PBXGroup;
-			children = (
-				D958B7B7BC3C4F3697267980 /* ShareViewController.swift */,
-				84378499FA254687B7B7AC02 /* MainInterface.storyboard */,
-				329F1648A5F04236BDEA5EB2 /* ShareExtensionPreprocessor.js */,
-				54785FAF1C6E40DAAA13F611 /* PrivacyInfo.xcprivacy */,
-				E9933EA74FD84320B6E14299 /* ShareExtension-Info.plist */,
-				2882AB70E8AA4C65AC160AC3 /* ShareExtension.entitlements */,
-			);
-			name = ShareExtension;
-			path = ShareExtension;
-			sourceTree = "<group>";
-		};
-		F88F8651CB6382279958CC78 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				ACF8823D39638C1AD4D16E00 /* TossIt */,
-			);
-			name = ExpoModulesProviders;
+			path = Organizel/Supporting;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* TossIt */ = {
+		13B07F861A680F5B00A75B9A /* Organizel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TossIt" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Organizel" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				5760A13B2C6B99A788D7DDB8 /* [Expo] Configure project */,
+				DE863BCB7636BA16F918BF19 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				BF64393F9D6B407E92ED799A /* Copy Files */,
-				5DB427C15FE9C1D446E7D577 /* [CP] Embed Pods Frameworks */,
+				9EFD10E3E4384B2BB872D837 /* Copy Files */,
+				4430FA74B46967570E1F6D48 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				298C9944926A409AB3359D41 /* PBXTargetDependency */,
+				DB64991E0B584800B44C9ED8 /* PBXTargetDependency */,
 			);
-			name = TossIt;
-			productName = TossIt;
-			productReference = 13B07F961A680F5B00A75B9A /* TossIt.app */;
+			name = Organizel;
+			productName = Organizel;
+			productReference = 13B07F961A680F5B00A75B9A /* Organizel.app */;
 			productType = "com.apple.product-type.application";
 		};
-		72734492C97C4280A56207D2 /* ShareExtension */ = {
+		5224A2832BD1466281C33B2D /* ShareExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C6E76A8735C1493C920C4B28 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
+			buildConfigurationList = 810FE4CC17D94AD193D1BDD5 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
 			buildPhases = (
-				587A3749A4C54490BAB964D5 /* Sources */,
-				7F9BEE6A88B24A9C972487C6 /* Resources */,
-				8BE43AA3376E4F93BC025EFD /* Frameworks */,
+				DA93B2CBACEB4389824ADB63 /* Sources */,
+				0044189C3CD84C2A85151B28 /* Resources */,
+				F65F0B8F9AD143AE8799BC04 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -230,7 +230,7 @@
 			);
 			name = ShareExtension;
 			productName = ShareExtension;
-			productReference = B2D0EE43023248CA81C822D3 /* ShareExtension.appex */;
+			productReference = F16E53B4B6B647A684E60B3D /* ShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -246,7 +246,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TossIt" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Organizel" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -259,13 +259,23 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* TossIt */,
-				72734492C97C4280A56207D2 /* ShareExtension */,
+				13B07F861A680F5B00A75B9A /* Organizel */,
+				5224A2832BD1466281C33B2D /* ShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0044189C3CD84C2A85151B28 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				03D61DC5B3894B0E82C61F5F /* MainInterface.storyboard in Resources */,
+				29A31C13DFCF497896131889 /* ShareExtensionPreprocessor.js in Resources */,
+				14E32051D40243B18C5F95DA /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		13B07F8E1A680F5B00A75B9A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -273,17 +283,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				E02DBDF7C0884A1E00AA1005 /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		7F9BEE6A88B24A9C972487C6 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EC59FAFB24924B879B3DB23A /* MainInterface.storyboard in Resources */,
-				C2D41EC46B8B4B17AA21637B /* ShareExtensionPreprocessor.js in Resources */,
-				6BC75D4E86F04E8687BBA757 /* PrivacyInfo.xcprivacy in Resources */,
+				1876249AA4CCC6AD8BB5EA06 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,44 +322,20 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-TossIt-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Organizel-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		5760A13B2C6B99A788D7DDB8 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.xcode.env",
-				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/TossIt/TossIt.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-TossIt/expo-configure-project.sh",
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-TossIt/ExpoModulesProvider.swift",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-TossIt/expo-configure-project.sh\"\n";
-		};
-		5DB427C15FE9C1D446E7D577 /* [CP] Embed Pods Frameworks */ = {
+		4430FA74B46967570E1F6D48 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TossIt/Pods-TossIt-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Organizel/Pods-Organizel-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
@@ -372,7 +348,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TossIt/Pods-TossIt-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Organizel/Pods-Organizel-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
@@ -381,7 +357,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TossIt/Pods-TossIt-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Organizel/Pods-Organizel-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/AppAuth/AppAuthCore_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
@@ -418,8 +394,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TossIt/Pods-TossIt-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Organizel/Pods-Organizel-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		DE863BCB7636BA16F918BF19 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/Organizel/Organizel.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-Organizel/expo-configure-project.sh",
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-Organizel/ExpoModulesProvider.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Organizel/expo-configure-project.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -429,43 +429,43 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				DA4FDCB272E9E5040C7841A2 /* ExpoModulesProvider.swift in Sources */,
+				09063FD50BD2D37F0D82748F /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		587A3749A4C54490BAB964D5 /* Sources */ = {
+		DA93B2CBACEB4389824ADB63 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C69D0C4DF5584A728E4BAF4E /* ShareViewController.swift in Sources */,
+				1DBC4B57E09C41DC84AB0997 /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		298C9944926A409AB3359D41 /* PBXTargetDependency */ = {
+		DB64991E0B584800B44C9ED8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 72734492C97C4280A56207D2 /* ShareExtension */;
-			targetProxy = F6BF4A6289F5494EAE9CBF48 /* PBXContainerItemProxy */;
+			target = 5224A2832BD1466281C33B2D /* ShareExtension */;
+			targetProxy = D9A2B5175A634E2C9BA21426 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7F828EF93AC49E3DCE7142C9 /* Pods-TossIt.debug.xcconfig */;
+			baseConfigurationReference = 08089F1A922CC7D5C9602441 /* Pods-Organizel.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = TossIt/TossIt.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Organizel/Organizel.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = TossIt/Info.plist;
+				INFOPLIST_FILE = Organizel/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -478,9 +478,9 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tossit.app;
-				PRODUCT_NAME = TossIt;
-				SWIFT_OBJC_BRIDGING_HEADER = "TossIt/TossIt-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.organizel.app;
+				PRODUCT_NAME = Organizel;
+				SWIFT_OBJC_BRIDGING_HEADER = "Organizel/Organizel-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -490,13 +490,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 02EB61C0279F0CEAB1323BA5 /* Pods-TossIt.release.xcconfig */;
+			baseConfigurationReference = 5A1C1A0B2B411ED0773DDC0D /* Pods-Organizel.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = TossIt/TossIt.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Organizel/Organizel.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = TossIt/Info.plist;
+				INFOPLIST_FILE = Organizel/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -509,14 +509,43 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tossit.app;
-				PRODUCT_NAME = TossIt;
-				SWIFT_OBJC_BRIDGING_HEADER = "TossIt/TossIt-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.organizel.app;
+				PRODUCT_NAME = Organizel;
+				SWIFT_OBJC_BRIDGING_HEADER = "Organizel/Organizel-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		3CCEFD976228441486C196A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.18;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.organizel.app.share-extension";
+				PRODUCT_NAME = ShareExtension;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -666,36 +695,7 @@
 			};
 			name = Release;
 		};
-		C4B50DDB0C8F490B9F9A3B5E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tossit.app.share-extension";
-				PRODUCT_NAME = ShareExtension;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		DB8E8781FA3C404E87E50932 /* Release */ = {
+		F4EBD9851E8343A5A10C1477 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
@@ -709,9 +709,9 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.18;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tossit.app.share-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.organizel.app.share-extension";
 				PRODUCT_NAME = ShareExtension;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -723,7 +723,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TossIt" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Organizel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -732,20 +732,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TossIt" */ = {
+		810FE4CC17D94AD193D1BDD5 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				83CBBA201A601CBA00E9B192 /* Debug */,
-				83CBBA211A601CBA00E9B192 /* Release */,
+				3CCEFD976228441486C196A5 /* Debug */,
+				F4EBD9851E8343A5A10C1477 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C6E76A8735C1493C920C4B28 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Organizel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C4B50DDB0C8F490B9F9A3B5E /* Debug */,
-				DB8E8781FA3C404E87E50932 /* Release */,
+				83CBBA201A601CBA00E9B192 /* Debug */,
+				83CBBA211A601CBA00E9B192 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -198,7 +198,7 @@ export default function SettingsScreen() {
             About
           </Text>
           <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-            The Dump
+            Organizel
           </Text>
           <Text className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
             Version 1.0.0

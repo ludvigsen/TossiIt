@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import axios from 'axios';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { getAuthHeaders } from '../utils/auth';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,6 +46,7 @@ async function saveScheduledMap(map: Record<string, string>) {
 }
 
 export default function TodosScreen() {
+  const route = useRoute<any>();
   const [items, setItems] = useState<any[]>([]);
   const [segment, setSegment] = useState<'todos' | 'info' | 'archive'>('todos');
   const [loading, setLoading] = useState(false);
@@ -63,6 +64,14 @@ export default function TodosScreen() {
   const isDark = colorScheme === 'dark';
 
   const tzOffsetMinutes = new Date().getTimezoneOffset();
+
+  // Allow deep-linking into a specific segment (e.g. from Dashboard)
+  useEffect(() => {
+    const initial = route?.params?.initialSegment as 'todos' | 'info' | 'archive' | undefined;
+    if (initial && initial !== segment) {
+      setSegment(initial);
+    }
+  }, [route?.params?.initialSegment]);
 
   const getAuthHeader = async (forceRefresh = false) => getAuthHeaders({ forceRefresh });
 

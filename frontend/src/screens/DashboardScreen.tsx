@@ -4,7 +4,7 @@ import axios from 'axios';
 import Markdown from 'react-native-markdown-display';
 import { API_URL } from '../utils/env';
 import { useNavigation } from '@react-navigation/native';
-import { TossItLogo } from '../components/Logo';
+import { OrganizelLogo } from '../components/Logo';
 import { getAuthHeaders } from '../utils/auth';
 
 export default function DashboardScreen() {
@@ -14,9 +14,25 @@ export default function DashboardScreen() {
   const [summary, setSummary] = useState<string | null>(null);
   const [todayEvents, setTodayEvents] = useState<any[]>([]);
   const [todayTodos, setTodayTodos] = useState<any[]>([]);
+  const [todayInfos, setTodayInfos] = useState<any[]>([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const navigation = useNavigation();
+
+  const renderPeople = (people: any[] | undefined) => {
+    if (!people || people.length === 0) return null;
+    return (
+      <View className="flex-row flex-wrap gap-2 mt-2">
+        {people.map((p: any) => (
+          <View key={p.id ?? p.name} className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} px-2 py-1 rounded-xl`}>
+            <Text className={`${isDark ? 'text-gray-200' : 'text-gray-800'} text-xs font-semibold`}>
+              {p.name}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   const fetchData = async () => {
     try {
@@ -28,6 +44,7 @@ export default function DashboardScreen() {
         const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers, params: { tzOffsetMinutes } });
         setTodayEvents(dashboardRes.data.events);
         setTodayTodos(dashboardRes.data.todos);
+        setTodayInfos(dashboardRes.data.infos || []);
       } catch (err) {
         console.error('Error fetching dashboard items', err);
       } finally {
@@ -50,6 +67,39 @@ export default function DashboardScreen() {
       setSummaryLoading(false);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const refreshToday = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const tzOffsetMinutes = new Date().getTimezoneOffset();
+      const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers, params: { tzOffsetMinutes } });
+      setTodayEvents(dashboardRes.data.events);
+      setTodayTodos(dashboardRes.data.todos);
+      setTodayInfos(dashboardRes.data.infos || []);
+    } catch (e) {
+      console.error('Failed to refresh dashboard', e);
+    }
+  };
+
+  const completeTodo = async (id: string) => {
+    try {
+      const headers = await getAuthHeaders();
+      await axios.patch(`${API_URL}/actionable-items/${id}/complete`, { completed: true }, { headers });
+      await refreshToday();
+    } catch (e) {
+      console.error('Failed to complete todo', e);
+    }
+  };
+
+  const archiveItem = async (id: string) => {
+    try {
+      const headers = await getAuthHeaders();
+      await axios.patch(`${API_URL}/actionable-items/${id}/archive`, {}, { headers });
+      await refreshToday();
+    } catch (e) {
+      console.error('Failed to archive item', e);
     }
   };
 
@@ -86,7 +136,7 @@ export default function DashboardScreen() {
             Here's your daily briefing
           </Text>
         </View>
-        <TossItLogo width={50} height={50} color={isDark ? '#60A5FA' : '#2563EB'} />
+        <OrganizelLogo width={50} height={50} color={isDark ? '#60A5FA' : '#2563EB'} />
       </View>
 
       {/* Daily Summary Card */}
@@ -134,6 +184,7 @@ export default function DashboardScreen() {
                 {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 {event.location ? ` • ${event.location}` : ''}
               </Text>
+              {renderPeople(event.people)}
             </View>
           ))
         ) : (
@@ -163,19 +214,86 @@ export default function DashboardScreen() {
               className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
               style={{ borderLeftColor: '#FFC107' }}
             >
-              <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {todo.title}
-              </Text>
+              <View className="flex-row items-start justify-between gap-3">
+                <View className="flex-1">
+                  <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {todo.title}
+                  </Text>
+                </View>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    onPress={() => completeTodo(todo.id)}
+                    className="bg-green-600 px-3 py-2 rounded-xl"
+                  >
+                    <Text className="text-white font-bold text-xs">Done</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => archiveItem(todo.id)}
+                    className={`${isDark ? 'bg-gray-700' : 'bg-gray-200'} px-3 py-2 rounded-xl`}
+                  >
+                    <Text className={`${isDark ? 'text-gray-200' : 'text-gray-800'} font-bold text-xs`}>Archive</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               {todo.dueDate && (
                   <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Due: {new Date(todo.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    Due: {new Date(todo.dueDate).toLocaleDateString()}
                   </Text>
               )}
+              {renderPeople(todo.people)}
             </View>
           ))
         ) : (
           <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
             <Text className={`text-gray-400 text-center`}>No tasks due soon</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Info (time-bounded context) */}
+      <View className="mb-6">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Info
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Todos' as never, { initialSegment: 'info' } as never)}>
+            <Text className="text-blue-500 font-semibold">See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loading ? (
+          <ActivityIndicator />
+        ) : todayInfos.length > 0 ? (
+          todayInfos.map((info, index) => (
+            <View
+              key={index}
+              className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
+              style={{ borderLeftColor: '#60A5FA' }}
+            >
+              <View className="flex-row items-start justify-between gap-3">
+                <View className="flex-1">
+                  <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {info.title}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => archiveItem(info.id)}
+                  className={`${isDark ? 'bg-gray-700' : 'bg-gray-200'} px-3 py-2 rounded-xl`}
+                >
+                  <Text className={`${isDark ? 'text-gray-200' : 'text-gray-800'} font-bold text-xs`}>Archive</Text>
+                </TouchableOpacity>
+              </View>
+              {info.expiresAt && (
+                <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Expires: {new Date(info.expiresAt).toLocaleDateString()}
+                </Text>
+              )}
+              {renderPeople(info.people)}
+            </View>
+          ))
+        ) : (
+          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
+            <Text className={`text-gray-400 text-center`}>No active info right now</Text>
           </View>
         )}
       </View>
