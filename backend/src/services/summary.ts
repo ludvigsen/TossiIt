@@ -36,7 +36,6 @@ export const generateDailySummary = async (userId: string, tzOffsetMinutes?: num
     const todos = await prisma.actionableItem.findMany({
       where: {
         userId,
-        kind: 'todo',
         archivedAt: null,
         completed: false,
         OR: [
@@ -51,21 +50,6 @@ export const generateDailySummary = async (userId: string, tzOffsetMinutes?: num
         { dueDate: 'asc' },
         { createdAt: 'desc' },
       ],
-      take: 20,
-    });
-
-    // 1c. Fetch active infos
-    const infos = await prisma.actionableItem.findMany({
-      where: {
-        userId,
-        kind: 'info',
-        archivedAt: null,
-        expiresAt: { not: null, gte: now },
-      },
-      include: {
-        people: { select: { id: true, name: true, relationship: true, category: true } },
-      },
-      orderBy: [{ expiresAt: 'asc' }, { createdAt: 'desc' }],
       take: 20,
     });
 
@@ -114,14 +98,7 @@ ${JSON.stringify({
     dueDate: t.dueDate,
     priority: t.priority,
     category: t.category,
-    people: t.people?.map(p => ({ name: p.name, relationship: p.relationship, category: p.category })) ?? [],
-  })),
-  infos: infos.map(i => ({
-    title: i.title,
-    description: i.description,
-    expiresAt: i.expiresAt,
-    category: i.category,
-    people: i.people?.map(p => ({ name: p.name, relationship: p.relationship, category: p.category })) ?? [],
+    people: t.people?.map((p: any) => ({ name: p.name, relationship: p.relationship, category: p.category })) ?? [],
   })),
   recentNotes: dumps.map(d => ({
     sourceType: d.sourceType,

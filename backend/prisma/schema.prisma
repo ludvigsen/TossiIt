@@ -31,6 +31,8 @@ model RawDump {
   contentText String?   @map("content_text") @db.Text
   mediaUrl    String?   @map("media_url")
   sourceType  String    @map("source_type")
+  category    String?   // AI-assigned category (school, soccer, work, etc.) - user-editable
+  infoContext Json?     @map("info_context") // Non-actionable context/details extracted from the document
   // Note: embedding is a pgvector type - use $queryRaw for vector operations
   // Prisma doesn't natively support pgvector, so we handle it with raw SQL
   embedding   String? // Stored as vector(768) in DB, but accessed via raw SQL
@@ -79,6 +81,7 @@ model Event {
   originDump RawDump? @relation(fields: [originDumpId], references: [id], onDelete: SetNull)
   people     Person[] @relation("EventPeople")
 
+  @@index([userId, startTime])
   @@map("events")
 }
 
@@ -114,14 +117,12 @@ model ActionableItem {
   dumpId      String?   @map("dump_id") @db.Uuid
   title       String
   description String?   @db.Text
-  kind        String    @default("todo") // "todo" | "info"
   dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
-  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
   completed   Boolean   @default(false)
   priority    String?   // "high", "medium", "low"
   category    String?   // e.g., "school", "family", "work"
   archivedAt  DateTime? @map("archived_at") @db.Timestamptz(6)
-  archivedReason String? @map("archived_reason") // "overdue_12h" | "expired" | "user_archived"
+  archivedReason String? @map("archived_reason") // "overdue_12h" | "user_archived"
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
 

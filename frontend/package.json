@@ -1,6 +1,6 @@
 {
   "name": "organizel",
-  "version": "1.0.19",
+  "version": "1.0.28",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -23,6 +23,7 @@
     "axios": "^1.13.2",
     "expo": "~54.0.31",
     "expo-build-properties": "^1.0.10",
+    "expo-document-picker": "~14.0.8",
     "expo-file-system": "^19.0.21",
     "expo-image-picker": "^17.0.10",
     "expo-notifications": "~0.32.16",

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Organizel",
     "slug": "organizel",
-    "version": "1.0.19",
+    "version": "1.0.28",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -30,10 +30,7 @@
           "action": "SEND",
           "data": [
             {
-              "mimeType": "image/*"
-            },
-            {
-              "mimeType": "text/plain"
+              "mimeType": "*/*"
             }
           ],
           "category": [
@@ -44,7 +41,7 @@
           "action": "SEND_MULTIPLE",
           "data": [
             {
-              "mimeType": "image/*"
+              "mimeType": "*/*"
             }
           ],
           "category": [
@@ -69,7 +66,8 @@
             "activationRules": {
               "NSExtensionActivationSupportsImageWithMaxCount": 1,
               "NSExtensionActivationSupportsText": true,
-              "NSExtensionActivationSupportsWebURLWithMaxCount": 1
+              "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
+              "NSExtensionActivationSupportsFileWithMaxCount": 5
             }
           }
         }

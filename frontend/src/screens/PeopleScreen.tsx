@@ -348,8 +348,28 @@ export default function PeopleScreen() {
   return (
     <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
       <View className="px-4 pt-4 pb-2">
-        <Text className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>People</Text>
-        <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Important people only</Text>
+        <View className="flex-row items-center justify-between mb-2">
+          <View className="flex-1">
+            <Text className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>People</Text>
+            <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Important people only</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setAddMenuOpen(true)}
+            className="bg-blue-600 px-4 py-2 rounded-xl"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 3,
+              elevation: 3,
+            }}
+          >
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-white font-bold text-sm">Add</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading && people.length === 0 ? (

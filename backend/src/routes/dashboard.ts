@@ -35,6 +35,9 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
       },
       include: {
         people: { select: { id: true, name: true, relationship: true, category: true } },
+        originDump: {
+          select: { id: true, category: true }
+        }
       },
       orderBy: { startTime: 'asc' }
     });
@@ -46,7 +49,6 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
     const todosPromise = prisma.actionableItem.findMany({
       where: {
         userId,
-        kind: 'todo',
         archivedAt: null,
         completed: false,
         OR: [
@@ -54,7 +56,15 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
           { dueDate: null } // Items with no due date
         ]
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        dueDate: true,
+        completed: true,
+        priority: true,
+        category: true,
+        createdAt: true,
         people: { select: { id: true, name: true, relationship: true, category: true } },
       },
       orderBy: [
@@ -64,27 +74,57 @@ router.get('/today', authenticate, async (req: Request, res: Response) => {
       take: 20 // Limit to 20 items to keep dashboard clean
     });
 
-    const infosPromise = prisma.actionableItem.findMany({
+    // Fetch upcoming events (next 7 days)
+    const endOfWeek = new Date(endOfToday.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const upcomingEventsPromise = prisma.event.findMany({
       where: {
         userId,
-        kind: 'info',
+        startTime: {
+          gt: endOfToday,
+          lte: endOfWeek
+        }
+      },
+      include: {
+        people: { select: { id: true, name: true, relationship: true, category: true } },
+        originDump: {
+          select: { id: true, category: true }
+        }
+      },
+      orderBy: { startTime: 'asc' },
+      take: 5 // Limit to 5 upcoming events
+    });
+
+    // Fetch upcoming todos (next 7 days)
+    const upcomingTodosPromise = prisma.actionableItem.findMany({
+      where: {
+        userId,
         archivedAt: null,
-        expiresAt: { not: null, gte: now },
+        completed: false,
+        dueDate: {
+          gt: endOfToday,
+          lte: endOfWeek
+        }
       },
       include: {
         people: { select: { id: true, name: true, relationship: true, category: true } },
       },
-      orderBy: [{ expiresAt: 'asc' }, { createdAt: 'desc' }],
-      take: 20,
+      orderBy: { dueDate: 'asc' },
+      take: 5 // Limit to 5 upcoming todos
     });
 
-    const [events, todos, infos] = await Promise.all([eventsPromise, todosPromise, infosPromise]);
+    const [events, todos, upcomingEvents, upcomingTodos] = await Promise.all([
+      eventsPromise, 
+      todosPromise, 
+      upcomingEventsPromise, 
+      upcomingTodosPromise
+    ]);
 
     res.json({
       date: localDateISO,
       events,
       todos,
-      infos
+      upcomingEvents,
+      upcomingTodos
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

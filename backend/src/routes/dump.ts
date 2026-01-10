@@ -44,7 +44,7 @@ const conditionalMulter = (req: Request, res: Response, next: any) => {
 
 router.post('/', authenticate, conditionalMulter, async (req: Request, res: Response, next: any): Promise<void> => {
   try {
-    const { source_type, content_text, file_base64 } = req.body;
+    const { source_type, content_text, file_base64, file_name, file_mime } = req.body;
     const user_id = (req as AuthRequest).user?.id; // Get from token
     const user_email = (req as AuthRequest).user?.email; // Get from token
     const file = req.file;
@@ -123,9 +123,9 @@ router.post('/', authenticate, conditionalMulter, async (req: Request, res: Resp
         }
         const simulatedFile: Express.Multer.File = {
           fieldname: 'file',
-          originalname: 'upload.jpg', // Default name
+          originalname: (typeof file_name === 'string' && file_name.trim()) ? file_name.trim() : 'upload.bin',
           encoding: '7bit',
-          mimetype: 'image/jpeg', // Default type, maybe detect from base64 header if present
+          mimetype: (typeof file_mime === 'string' && file_mime.trim()) ? file_mime.trim() : 'application/octet-stream',
           buffer: buffer,
           size: buffer.length,
           stream: null as any,

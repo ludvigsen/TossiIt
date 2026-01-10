@@ -15,6 +15,8 @@ import TodosScreen from './src/screens/TodosScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import PeopleScreen from './src/screens/PeopleScreen';
 import PersonOverviewScreen from './src/screens/PersonOverviewScreen';
+import DocumentsScreen from './src/screens/DocumentsScreen';
+import DocumentDetailScreen from './src/screens/DocumentDetailScreen';
 import SettingsScreen, { setLogoutCallback, setThemeChangeCallback } from './src/screens/SettingsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -145,8 +147,8 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
         // We'll render our own tab bar (below) for perfect spacing + FAB notch.
       })}
       tabBar={({ state, descriptors, navigation }) => {
-        // Visible tabs in order. Keep these equally spaced (5 slots).
-        const visible = ['Dashboard', 'Calendar', 'Todos', 'People', 'Menu'] as const;
+        // Visible tabs in order. Keep these equally spaced (6 slots).
+        const visible = ['Dashboard', 'Calendar', 'Todos', 'People', 'Documents', 'Menu'] as const;
         const visibleRoutes = state.routes.filter((r) => (visible as readonly string[]).includes(r.name));
         const activeRouteName = state.routes[state.index]?.name;
         const focusProxy: Record<string, string> = {
@@ -154,6 +156,7 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
           History: 'Menu',
           Settings: 'Menu',
           PersonOverview: 'People',
+          DocumentDetail: 'Documents',
         };
         const effectiveActive = focusProxy[activeRouteName] || activeRouteName;
 
@@ -169,20 +172,8 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
                 const { options } = descriptors[route.key];
                 const isFocused = route.name === effectiveActive;
                 const color = isFocused ? active : inactive;
-                const notchSide =
-                  route.name === 'Calendar' ? 'left' : route.name === 'Todos' ? 'right' : null;
-                const flexWeight =
-                  route.name === 'Dashboard'
-                    ? 1.4
-                    : route.name === 'Calendar'
-                      ? 1.15
-                      : route.name === 'Todos'
-                        ? 1.15
-                        : route.name === 'People'
-                          ? 0.8
-                          : route.name === 'Menu'
-                            ? 0.6
-                            : 1;
+                // All tabs equal width - 3 on left, 3 on right of capture button
+                const flexWeight = 1;
 
                 const onPress = () => {
                   if (route.name === 'Menu') {
@@ -220,9 +211,13 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
                           ? isFocused
                             ? 'people'
                             : 'people-outline'
-                          : isFocused
-                            ? 'menu'
-                            : 'menu-outline';
+                          : route.name === 'Documents'
+                            ? isFocused
+                              ? 'document-text'
+                              : 'document-text-outline'
+                            : isFocused
+                              ? 'menu'
+                              : 'menu-outline';
 
                 const label =
                   options.tabBarLabel !== undefined
@@ -243,11 +238,6 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
                     style={[
                       styles.tabItem,
                       { flex: flexWeight },
-                      notchSide === 'left'
-                        ? { paddingRight: 28 }
-                        : notchSide === 'right'
-                          ? { paddingLeft: 28 }
-                          : null,
                     ]}
                     activeOpacity={0.8}
                   >
@@ -286,6 +276,7 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
       />
       <Tab.Screen name="Todos" component={TodosScreen} />
       <Tab.Screen name="People" component={PeopleScreen} />
+      <Tab.Screen name="Documents" component={DocumentsScreen} />
       {/* Hidden tab routes (accessible via Menu overlay) */}
       <Tab.Screen
         name="Inbox"
@@ -305,6 +296,11 @@ function MainTabs({ isDark, onOpenMenu }: { isDark: boolean; onOpenMenu: () => v
       <Tab.Screen
         name="PersonOverview"
         component={PersonOverviewScreen}
+        options={{ tabBarButton: () => null }}
+      />
+      <Tab.Screen
+        name="DocumentDetail"
+        component={DocumentDetailScreen}
         options={{ tabBarButton: () => null }}
       />
       <Tab.Screen name="Menu" component={EmptyScreen} />

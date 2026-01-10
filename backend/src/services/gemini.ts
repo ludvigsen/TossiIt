@@ -72,9 +72,7 @@ const model = genAI.getGenerativeModel({
             properties: {
               title: { type: SchemaType.STRING },
               description: { type: SchemaType.STRING },
-              kind: { type: SchemaType.STRING, description: "\"todo\" or \"info\". Use \"info\" for non-actionable context that should expire." },
               due_date: { type: SchemaType.STRING, description: "ISO 8601 date string or null" },
-              expires_at: { type: SchemaType.STRING, description: "ISO 8601 date string or null. REQUIRED when kind=\"info\"." },
               priority: { type: SchemaType.STRING, description: "high, medium, or low" },
               category: { type: SchemaType.STRING, description: "school, family, work, etc." },
               people_ids: {
@@ -85,7 +83,25 @@ const model = genAI.getGenerativeModel({
             },
             required: ["title"]
           },
-          description: "Items extracted from the captured entry. Use kind=todo for actionable tasks and kind=info for time-bounded context. Always include expires_at for info."
+          description: "Actionable tasks (todos) extracted from the captured entry. Only include items that require action from the user."
+        },
+        info_context: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              title: { type: SchemaType.STRING, description: "Short title for this piece of context" },
+              description: { type: SchemaType.STRING, description: "Detailed context information" },
+              expires_at: { type: SchemaType.STRING, description: "ISO 8601 date string when this context is no longer relevant" },
+              people_ids: {
+                type: SchemaType.ARRAY,
+                items: { type: SchemaType.STRING },
+                description: "List of existing person_id values (from KNOWN PEOPLE) relevant to this context."
+              }
+            },
+            required: ["title", "description", "expires_at"]
+          },
+          description: "Non-actionable time-bounded context extracted from the document. This is informational content that should be displayed with the document but doesn't require action."
         },
         full_text: {
           type: SchemaType.STRING,
@@ -226,22 +242,31 @@ export const processDumpWithGemini = async (
        - You can put these fields directly on the person object and/or inside metadata (preferred). Avoid inventing values.
        - Use the KNOWN PEOPLE list below to map each mentioned person to an existing person_id when possible.
     
-    3. Items (todos + info):
-       - Extract BOTH actionable tasks (todos) and non-actionable time-bounded context (info).
-       - Use kind="todo" for tasks the user must do.
-       - Use kind="info" for context that should auto-hide after it is no longer relevant.
-       - For kind="info", you MUST set expires_at (you decide it).
+    3. Document category:
+       - Assign a category to this document (e.g., "school", "soccer", "work", "family", "medical", etc.)
+       - The category should reflect the primary context of the document
+       - Use the category field at the top level of your response
+    
+    4. Items (todos):
+       - Extract ONLY actionable tasks (todos) - things the user must do.
        - People linkage:
-         * If this message is about a child's school/kindergarten activity, then ALL related todos and infos should be attributed to that child.
-         * When the child is a KNOWN PERSON, include their person_id in people_ids for EVERY related item (todos AND info).
+         * If this message is about a child's school/kindergarten activity, then ALL related todos should be attributed to that child.
+         * When the child is a KNOWN PERSON, include their person_id in people_ids for EVERY related todo.
          * If the child is not a known person_id, still include the child as a person in the people[] array (relationship=child) with metadata (grade/school), and leave people_ids empty.
-       - Extract EVERYTHING that requires action (todos):
+       - Extract EVERYTHING that requires action:
          * Things to bring (cocoa, warm clothes, shoes, gloves, etc.)
          * Things to prepare (packed lunch, sausages for grilling)
          * Things to inform about (tell teachers by Wednesday)
          * Deadlines (inform by Wednesday)
-       - Set due dates (todo): if it says "inform by Wednesday", set the due_date to that Wednesday
+       - Set due dates: if it says "inform by Wednesday", set the due_date to that Wednesday
        - Priority: "high" for deadlines, "medium" for things to bring/prepare
+    
+    5. Info context:
+       - Extract non-actionable time-bounded context into the info_context array.
+       - This includes informational details that should be displayed with the document but don't require action.
+       - Examples: event descriptions, background information, reminders that are purely informational.
+       - For each info_context item, you MUST set expires_at (decide when this context is no longer relevant).
+       - People linkage: same rules as todos - if about a child's activity, attribute to that child.
     
     4. School/Event context:
        - If it mentions a grade level, this is important context

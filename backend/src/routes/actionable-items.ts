@@ -155,12 +155,7 @@ router.patch('/:id', authenticate, async (req: Request, res: Response) => {
     if (description !== undefined) data.description = description ? String(description) : null;
     if (priority !== undefined) data.priority = priority ? String(priority) : null;
     if (category !== undefined) data.category = category ? String(category) : null;
-
-    if (existing.kind === 'todo') {
-      if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
-    } else if (existing.kind === 'info') {
-      if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
-    }
+    if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
 
     if (Array.isArray(peopleIds)) {
       data.people = {

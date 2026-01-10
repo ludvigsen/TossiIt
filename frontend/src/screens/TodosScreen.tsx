@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import axios from 'axios';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 import { getAuthHeaders } from '../utils/auth';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,8 +47,9 @@ async function saveScheduledMap(map: Record<string, string>) {
 
 export default function TodosScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const [items, setItems] = useState<any[]>([]);
-  const [segment, setSegment] = useState<'todos' | 'info' | 'archive'>('todos');
+  const [segment, setSegment] = useState<'todos' | 'archive'>('todos');
   const [loading, setLoading] = useState(false);
   const [people, setPeople] = useState<any[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -58,7 +59,6 @@ export default function TodosScreen() {
   const [formCategory, setFormCategory] = useState('');
   const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [formDueDate, setFormDueDate] = useState(''); // YYYY-MM-DD
-  const [formExpiresAt, setFormExpiresAt] = useState(''); // ISO or YYYY-MM-DD
   const [formPeopleIds, setFormPeopleIds] = useState<string[]>([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -67,7 +67,7 @@ export default function TodosScreen() {
 
   // Allow deep-linking into a specific segment (e.g. from Dashboard)
   useEffect(() => {
-    const initial = route?.params?.initialSegment as 'todos' | 'info' | 'archive' | undefined;
+    const initial = route?.params?.initialSegment as 'todos' | 'archive' | undefined;
     if (initial && initial !== segment) {
       setSegment(initial);
     }
@@ -125,17 +125,11 @@ export default function TodosScreen() {
       const headers = await getAuthHeader();
       if (segment === 'todos') {
         const res = await axios.get(
-          `${API_URL}/actionable-items?completed=false&kind=todo&tzOffsetMinutes=${tzOffsetMinutes}`,
+          `${API_URL}/actionable-items?completed=false&tzOffsetMinutes=${tzOffsetMinutes}`,
           { headers },
         );
         setItems(res.data);
         await scheduleNotificationsForItems(res.data);
-      } else if (segment === 'info') {
-        const res = await axios.get(
-          `${API_URL}/actionable-items?kind=info&includeArchived=false&tzOffsetMinutes=${tzOffsetMinutes}`,
-          { headers },
-        );
-        setItems(res.data);
       } else {
         const res = await axios.get(
           `${API_URL}/actionable-items/archive?tzOffsetMinutes=${tzOffsetMinutes}`,
@@ -180,10 +174,9 @@ export default function TodosScreen() {
     setEditingItem(null);
     setFormTitle('');
     setFormDescription('');
-    setFormCategory(segment === 'info' ? 'school' : '');
+    setFormCategory('');
     setFormPriority('');
     setFormDueDate('');
-    setFormExpiresAt('');
     setFormPeopleIds([]);
     setEditorOpen(true);
   };
@@ -195,7 +188,6 @@ export default function TodosScreen() {
     setFormCategory(String(item.category || ''));
     setFormPriority((item.priority as any) || '');
     setFormDueDate(item.dueDate ? String(item.dueDate).slice(0, 10) : '');
-    setFormExpiresAt(item.expiresAt ? String(item.expiresAt).slice(0, 10) : '');
     setFormPeopleIds(Array.isArray(item.people) ? item.people.map((p: any) => p.id) : []);
     setEditorOpen(true);
   };
@@ -212,24 +204,19 @@ export default function TodosScreen() {
     }
     try {
       const headers = await getAuthHeader();
-      const kind = editingItem?.kind || (segment === 'info' ? 'info' : 'todo');
       const payload: any = {
         title,
         description: formDescription.trim() || null,
         category: formCategory.trim() || null,
-        priority: kind === 'todo' ? (formPriority || null) : null,
+        priority: formPriority || null,
+        dueDate: formDueDate.trim() ? formDueDate.trim() : null,
         peopleIds: formPeopleIds,
       };
-      if (kind === 'todo') {
-        payload.dueDate = formDueDate.trim() ? formDueDate.trim() : null;
-      } else if (kind === 'info') {
-        payload.expiresAt = formExpiresAt.trim() ? formExpiresAt.trim() : null;
-      }
 
       if (editingItem) {
         await axios.patch(`${API_URL}/actionable-items/${editingItem.id}`, payload, { headers });
       } else {
-        await axios.post(`${API_URL}/actionable-items`, { ...payload, kind }, { headers });
+        await axios.post(`${API_URL}/actionable-items`, payload, { headers });
       }
 
       setEditorOpen(false);
@@ -382,6 +369,14 @@ export default function TodosScreen() {
             </TouchableOpacity>
           ) : (
             <View className="flex-row gap-2">
+              {item.dump?.id && (
+                <TouchableOpacity
+                  className="bg-blue-500 px-3 py-2 rounded-lg"
+                  onPress={() => navigation.navigate('DocumentDetail' as never, { documentId: item.dump.id } as never)}
+                >
+                  <Text className="text-white text-sm font-semibold">📄 Document</Text>
+                </TouchableOpacity>
+              )}
               {segment === 'todos' && (
                 <TouchableOpacity
                   className="bg-green-500 px-3 py-2 rounded-lg"
@@ -418,14 +413,6 @@ export default function TodosScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 py-2 rounded-2xl items-center ${segment === 'info' ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''}`}
-            onPress={() => setSegment('info')}
-          >
-            <Text className={`${segment === 'info' ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-semibold`}>
-              Info
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             className={`flex-1 py-2 rounded-2xl items-center ${segment === 'archive' ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''}`}
             onPress={() => setSegment('archive')}
           >
@@ -436,14 +423,14 @@ export default function TodosScreen() {
         </View>
       </View>
 
-      {(segment === 'todos' || segment === 'info') && (
+      {segment === 'todos' && (
         <View className="px-4 pb-2">
           <TouchableOpacity
             className="bg-blue-600 py-3 rounded-2xl items-center"
             onPress={openCreate}
           >
             <Text className="text-white font-extrabold">
-              {segment === 'todos' ? '+ New Todo' : '+ New Info'}
+              + New Todo
             </Text>
           </TouchableOpacity>
         </View>
@@ -454,21 +441,15 @@ export default function TodosScreen() {
       ) : items.length === 0 ? (
         <View className="flex-1 justify-center items-center p-10">
           <Text className="text-6xl mb-4">
-            {segment === 'todos' ? '✅' : segment === 'info' ? 'ℹ️' : '🗄️'}
+            {segment === 'todos' ? '✅' : '🗄️'}
           </Text>
           <Text className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            {segment === 'todos'
-              ? 'No open todos'
-              : segment === 'info'
-                ? 'No active info'
-                : 'Archive is empty'}
+            {segment === 'todos' ? 'No open todos' : 'Archive is empty'}
           </Text>
           <Text className={`text-sm text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
             {segment === 'todos'
               ? 'When Gemini finds actionable items in your notes, they will show up here.'
-              : segment === 'info'
-                ? 'Time-bounded context will appear here until it expires.'
-                : 'Completed, expired, and stale items will show up here.'}
+              : 'Completed and stale items will show up here.'}
           </Text>
         </View>
       ) : (
@@ -482,7 +463,7 @@ export default function TodosScreen() {
           <View className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-t-3xl p-5 max-h-[85%]`}>
             <View className="flex-row items-center justify-between">
               <Text className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {editingItem ? 'Edit' : 'New'} {editingItem?.kind === 'info' || segment === 'info' ? 'Info' : 'Todo'}
+                {editingItem ? 'Edit' : 'New'} Todo
               </Text>
               <TouchableOpacity onPress={() => setEditorOpen(false)}>
                 <Text className={`${isDark ? 'text-gray-300' : 'text-gray-600'} font-bold`}>Close</Text>
@@ -549,18 +530,6 @@ export default function TodosScreen() {
                 </>
               )}
 
-              {(editingItem?.kind === 'info' || (!editingItem && segment === 'info')) && (
-                <>
-                  <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-1 mt-3`}>Expires (YYYY-MM-DD)</Text>
-                  <TextInput
-                    value={formExpiresAt}
-                    onChangeText={setFormExpiresAt}
-                    placeholder="2026-01-08"
-                    placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-                    className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} px-4 py-3 rounded-2xl`}
-                  />
-                </>
-              )}
 
               <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-xs font-semibold mb-2 mt-4`}>People</Text>
               {people.length === 0 ? (

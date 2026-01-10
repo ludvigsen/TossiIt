@@ -70,15 +70,18 @@ export const processRawDump = async (dumpId: string) => {
     }
 
     // 2. Call Gemini (it can also extract full_text from images)
+    // Only pass mediaUrl when it looks like an image; other documents (pdf/doc/etc) are stored but not vision-processed.
+    const mediaUrl = dump.mediaUrl || undefined;
+    const isImageUrl = !!mediaUrl && /\.(png|jpe?g|webp|gif)$/i.test(mediaUrl);
     const aiResult = await processDumpWithGemini(
       dump.contentText || '',
-      dump.mediaUrl || undefined,
+      isImageUrl ? mediaUrl : undefined,
       context,
       knownPeople,
     );
     console.log('AI Result:', aiResult);
 
-    const { confidence_score, people = [], actionable_items = [], full_text, ...proposedData } = aiResult;
+    const { confidence_score, people = [], actionable_items = [], info_context = [], full_text, category: documentCategory, ...proposedData } = aiResult;
 
     // If this dump had no text but Gemini extracted full_text, persist it and generate embedding now
     if (!dump.contentText && full_text) {
@@ -311,19 +314,13 @@ export const processRawDump = async (dumpId: string) => {
           actionPeopleIds = [...childPersonIds];
         }
 
-        const kind = ((actionItem as any).kind === 'info' ? 'info' : 'todo') as 'info' | 'todo';
-        const expiresAtRaw = (actionItem as any).expires_at as string | undefined;
-        const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
-
         await prisma.actionableItem.create({
           data: {
             userId: dump.userId,
             dumpId: dumpId,
             title: actionItem.title,
             description: actionItem.description || null,
-            kind,
             dueDate: actionItem.due_date ? new Date(actionItem.due_date) : null,
-            expiresAt,
             priority: actionItem.priority || null,
             category: actionItem.category || null,
             people: {
@@ -331,7 +328,7 @@ export const processRawDump = async (dumpId: string) => {
             }
           }
         });
-        console.log(`Created item (${kind}): ${actionItem.title}`);
+        console.log(`Created todo: ${actionItem.title}`);
       } catch (error) {
         console.error(`Error creating actionable item:`, error);
       }
@@ -428,22 +425,29 @@ export const processRawDump = async (dumpId: string) => {
         });
     }
 
-    // Link people to dump
-    if (personIds.length > 0) {
-      await prisma.rawDump.update({
-        where: { id: dumpId },
-        data: {
-          people: {
-            connect: personIds.map(id => ({ id }))
-          }
-        }
-      });
+    // Store category and infoContext on the dump
+    // Also link people to dump
+    const dumpUpdateData: any = {
+      processedAt: new Date(),
+    };
+    
+    if (documentCategory) {
+      dumpUpdateData.category = documentCategory;
     }
-
-    // 4. Update raw_dumps as processed
+    
+    if (info_context && Array.isArray(info_context) && info_context.length > 0) {
+      dumpUpdateData.infoContext = info_context;
+    }
+    
+    if (personIds.length > 0) {
+      dumpUpdateData.people = {
+        connect: personIds.map(id => ({ id }))
+      };
+    }
+    
     await prisma.rawDump.update({
       where: { id: dumpId },
-      data: { processedAt: new Date() }
+      data: dumpUpdateData
     });
 
     console.log(`Dump ${dumpId} processed successfully.`);

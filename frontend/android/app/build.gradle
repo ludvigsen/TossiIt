@@ -110,8 +110,8 @@ android {
         applicationId 'com.organizel.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1000019
-        versionName "1.0.19"
+        versionCode 1000028
+        versionName "1.0.28"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -124,14 +124,17 @@ android {
         }
         release {
             storeFile file('release.keystore')
-            storePassword releaseStorePassword
-            keyAlias releaseKeyAlias
-            keyPassword releaseKeyPassword
+            def sp = (project.findProperty("RELEASE_STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD")) ?: "tossit123"
+            def ka = (project.findProperty("RELEASE_KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS")) ?: "release"
+            def kp = (project.findProperty("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD")) ?: sp
+            storePassword = sp
+            keyAlias = ka
+            keyPassword = kp
         }
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
         release {
             // Caution! In production, you need to generate your own keystore file.

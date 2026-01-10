@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect x="0" y="0" width="512" height="512" rx="110" fill="#0b1220"/>
+
+  <!-- Mark -->
+  <g>
+    <!-- Inner plate -->
+    <circle cx="256" cy="256" r="186" fill="#0f172a"/>
+
+    <!-- Ring (fill-only: outer circle + inner cutout) -->
+    <circle cx="256" cy="256" r="198" fill="#3b82f6"/>
+    <circle cx="256" cy="256" r="176" fill="#0f172a"/>
+
+    <!-- Paper-plane / arrow (fill-only) -->
+    <path
+      d="M186 270 L342 200 L272 342 L256 286 L186 270 Z"
+      fill="#ffffff"
+    />
+    <!-- Accent tick -->
+    <path d="M248 278 L272 300 L316 230 L270 272 Z" fill="#22c55e"/>
+  </g>
+</svg>
+
+

@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import axios from 'axios';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getAuthHeaders } from '../utils/auth';
 import { API_URL } from '../utils/env';
 
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<'coming' | 'past'>('coming');
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useNavigation<any>();
 
   const getAuthHeader = async (forceRefresh = false) => getAuthHeaders({ forceRefresh });
 
@@ -17,7 +19,10 @@ export default function CalendarScreen() {
     setLoading(true);
     try {
       const headers = await getAuthHeader();
-      const res = await axios.get(`${API_URL}/events`, { headers });
+      const res = await axios.get(`${API_URL}/events`, { 
+        headers,
+        params: { filter }
+      });
       
       // Deduplicate events by title and startTime (within 1 hour window)
       const uniqueEvents = res.data.reduce((acc: any[], event: any) => {
@@ -45,7 +50,7 @@ export default function CalendarScreen() {
   useFocusEffect(
     React.useCallback(() => {
       fetchEvents();
-    }, [])
+    }, [filter])
   );
 
   const formatDate = (dateString: string) => {
@@ -125,15 +130,17 @@ export default function CalendarScreen() {
 
   // Group events by date
   const groupedEvents = useMemo(() => {
-    const groups: { [key: string]: any[] } = {};
+    const groups: { [key: string]: { events: any[]; sortDate: Date } } = {};
     
     events.forEach((event: any) => {
       try {
         const date = new Date(event.startTime);
         if (isNaN(date.getTime())) {
           const key = 'TBD';
-          if (!groups[key]) groups[key] = [];
-          groups[key].push(event);
+          if (!groups[key]) {
+            groups[key] = { events: [], sortDate: new Date(0) }; // Oldest possible date for TBD
+          }
+          groups[key].events.push(event);
           return;
         }
         
@@ -142,6 +149,7 @@ export default function CalendarScreen() {
         tomorrow.setDate(tomorrow.getDate() + 1);
         
         let key: string;
+        let sortDate = date;
         if (date.toDateString() === today.toDateString()) {
           key = 'Today';
         } else if (date.toDateString() === tomorrow.toDateString()) {
@@ -155,17 +163,31 @@ export default function CalendarScreen() {
           });
         }
         
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(event);
+        if (!groups[key]) {
+          groups[key] = { events: [], sortDate };
+        }
+        groups[key].events.push(event);
+        // Update sortDate to the earliest event in the group for coming, latest for past
+        if (filter === 'past') {
+          if (date > groups[key].sortDate) {
+            groups[key].sortDate = date; // Most recent date in group
+          }
+        } else {
+          if (date < groups[key].sortDate) {
+            groups[key].sortDate = date; // Earliest date in group
+          }
+        }
       } catch (e) {
         const key = 'TBD';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(event);
+        if (!groups[key]) {
+          groups[key] = { events: [], sortDate: new Date(0) };
+        }
+        groups[key].events.push(event);
       }
     });
     
     return groups;
-  }, [events]);
+  }, [events, filter]);
 
   const renderItem = ({ item }: { item: any }) => {
     const categoryColor = getCategoryColor(item.category);
@@ -228,16 +250,33 @@ export default function CalendarScreen() {
           </View>
         </View>
         <View className="flex-row items-center justify-between mt-2 pt-3 border-t" style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}>
-          {item.category && (
-            <View 
-              className="px-3 py-1.5 rounded-full" 
-              style={{ backgroundColor: categoryColor + '20' }}
-            >
-              <Text className="text-xs font-bold uppercase tracking-wide" style={{ color: categoryColor }}>
-                {item.category}
-              </Text>
-            </View>
-          )}
+          <View className="flex-row items-center gap-2">
+            {item.category && (
+              <View 
+                className="px-3 py-1.5 rounded-full" 
+                style={{ backgroundColor: categoryColor + '20' }}
+              >
+                <Text className="text-xs font-bold uppercase tracking-wide" style={{ color: categoryColor }}>
+                  {item.category}
+                </Text>
+              </View>
+            )}
+            {item.originDump?.id && (
+              <TouchableOpacity 
+                className="bg-blue-500 px-3 py-1.5 rounded-lg" 
+                onPress={() => navigation.navigate('DocumentDetail' as never, { documentId: item.originDump.id } as never)}
+                style={{
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 2,
+                  elevation: 2,
+                }}
+              >
+                <Text className="text-white text-sm font-bold">📄 Document</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <TouchableOpacity 
             className="bg-red-500 px-4 py-2 rounded-lg" 
             onPress={handleDelete}
@@ -271,31 +310,65 @@ export default function CalendarScreen() {
 
   return (
     <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      {/* Tabs */}
+      <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} px-4 pt-4 pb-2 border-b`} style={{ borderBottomColor: isDark ? '#374151' : '#e5e7eb', borderBottomWidth: 1 }}>
+        <View className="flex-row gap-2">
+          <TouchableOpacity
+            onPress={() => setFilter('coming')}
+            className={`flex-1 py-3 rounded-2xl items-center ${filter === 'coming' ? (isDark ? 'bg-blue-900' : 'bg-blue-100') : ''}`}
+          >
+            <Text className={`${filter === 'coming' ? (isDark ? 'text-blue-200' : 'text-blue-800') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-bold`}>
+              Coming
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setFilter('past')}
+            className={`flex-1 py-3 rounded-2xl items-center ${filter === 'past' ? (isDark ? 'bg-blue-900' : 'bg-blue-100') : ''}`}
+          >
+            <Text className={`${filter === 'past' ? (isDark ? 'text-blue-200' : 'text-blue-800') : (isDark ? 'text-gray-300' : 'text-gray-600')} font-bold`}>
+              Past
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {loading && events.length === 0 ? (
         <ActivityIndicator size="large" className="mt-12" />
       ) : Object.keys(groupedEvents).length === 0 ? (
         <View className="flex-1 justify-center items-center p-10">
           <Text className="text-6xl mb-6">📅</Text>
           <Text className={`text-2xl font-bold mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            No events scheduled
+            {filter === 'coming' ? 'No upcoming events' : 'No past events'}
           </Text>
           <Text className={`text-base text-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-            Events you confirm from the inbox will appear here
+            {filter === 'coming' 
+              ? 'Events you confirm from the inbox will appear here'
+              : 'Past events will appear here'}
           </Text>
         </View>
       ) : (
         <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
           {Object.entries(groupedEvents)
-            .sort(([a], [b]) => {
-              if (a === 'Today') return -1;
-              if (b === 'Today') return 1;
-              if (a === 'Tomorrow') return -1;
-              if (b === 'Tomorrow') return 1;
-              if (a === 'TBD') return 1;
-              if (b === 'TBD') return -1;
-              return a.localeCompare(b);
+            .sort(([a, aData], [b, bData]) => {
+              if (filter === 'past') {
+                // For past events, sort by date descending (most recent first)
+                if (a === 'TBD') return 1;
+                if (b === 'TBD') return -1;
+                // Sort by actual date, newest first
+                return bData.sortDate.getTime() - aData.sortDate.getTime();
+              } else {
+                // For coming events, sort by date ascending (soonest first)
+                if (a === 'Today') return -1;
+                if (b === 'Today') return 1;
+                if (a === 'Tomorrow') return -1;
+                if (b === 'Tomorrow') return 1;
+                if (a === 'TBD') return 1;
+                if (b === 'TBD') return -1;
+                // Sort by actual date, earliest first
+                return aData.sortDate.getTime() - bData.sortDate.getTime();
+              }
             })
-            .map(([dateKey, events]) => renderSection(dateKey, events))}
+            .map(([dateKey, groupData]) => renderSection(dateKey, groupData.events))}
         </ScrollView>
       )}
     </View>

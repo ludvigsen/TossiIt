@@ -14,7 +14,8 @@ export default function DashboardScreen() {
   const [summary, setSummary] = useState<string | null>(null);
   const [todayEvents, setTodayEvents] = useState<any[]>([]);
   const [todayTodos, setTodayTodos] = useState<any[]>([]);
-  const [todayInfos, setTodayInfos] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [upcomingTodos, setUpcomingTodos] = useState<any[]>([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const navigation = useNavigation();
@@ -42,9 +43,15 @@ export default function DashboardScreen() {
       // Fetch Dashboard Data (Fast)
       try {
         const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers, params: { tzOffsetMinutes } });
-        setTodayEvents(dashboardRes.data.events);
-        setTodayTodos(dashboardRes.data.todos);
-        setTodayInfos(dashboardRes.data.infos || []);
+        const todos = dashboardRes.data.todos || [];
+        // Debug: log first todo to check structure
+        if (todos.length > 0) {
+          console.log('First todo from API:', JSON.stringify(todos[0], null, 2));
+        }
+        setTodayEvents(dashboardRes.data.events || []);
+        setTodayTodos(todos);
+        setUpcomingEvents(dashboardRes.data.upcomingEvents || []);
+        setUpcomingTodos(dashboardRes.data.upcomingTodos || []);
       } catch (err) {
         console.error('Error fetching dashboard items', err);
       } finally {
@@ -75,9 +82,10 @@ export default function DashboardScreen() {
       const headers = await getAuthHeaders();
       const tzOffsetMinutes = new Date().getTimezoneOffset();
       const dashboardRes = await axios.get(`${API_URL}/dashboard/today`, { headers, params: { tzOffsetMinutes } });
-      setTodayEvents(dashboardRes.data.events);
-      setTodayTodos(dashboardRes.data.todos);
-      setTodayInfos(dashboardRes.data.infos || []);
+      setTodayEvents(dashboardRes.data.events || []);
+      setTodayTodos(dashboardRes.data.todos || []);
+      setUpcomingEvents(dashboardRes.data.upcomingEvents || []);
+      setUpcomingTodos(dashboardRes.data.upcomingTodos || []);
     } catch (e) {
       console.error('Failed to refresh dashboard', e);
     }
@@ -152,7 +160,9 @@ export default function DashboardScreen() {
           </Markdown>
         ) : (
           <Text className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-            No summary available yet. Capture some notes to get started!
+            {todayEvents.length === 0 && todayTodos.length === 0 
+              ? "Nothing on your agenda today. Enjoy your free day! 🎉"
+              : "AI insights will appear here as you capture more notes."}
           </Text>
         )}
       </View>
@@ -188,8 +198,24 @@ export default function DashboardScreen() {
             </View>
           ))
         ) : (
-          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
-            <Text className={`text-gray-400 text-center`}>No events scheduled for today</Text>
+          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl`}>
+            <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-center font-semibold mb-2`}>
+              No events scheduled for today
+            </Text>
+            {upcomingEvents.length > 0 && (
+              <View className="mt-4">
+                <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm font-semibold mb-2`}>
+                  Coming up:
+                </Text>
+                {upcomingEvents.slice(0, 3).map((event, index) => (
+                  <View key={index} className="mb-2">
+                    <Text className={`${isDark ? 'text-gray-300' : 'text-gray-800'} text-sm`}>
+                      📅 {event.title} • {new Date(event.startTime).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         )}
       </View>
@@ -208,7 +234,10 @@ export default function DashboardScreen() {
         {loading ? (
           <ActivityIndicator />
         ) : todayTodos.length > 0 ? (
-          todayTodos.map((todo, index) => (
+          todayTodos.map((todo, index) => {
+            // Handle both camelCase and snake_case field names
+            const dueDate = todo.dueDate || todo.due_date;
+            return (
             <View 
               key={index} 
               className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
@@ -219,6 +248,13 @@ export default function DashboardScreen() {
                   <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {todo.title}
                   </Text>
+                  {dueDate && (
+                    <View className="flex-row items-center mt-2">
+                      <Text className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>
+                        🗓️ Due: {new Date(dueDate).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <View className="flex-row gap-2">
                   <TouchableOpacity
@@ -235,65 +271,29 @@ export default function DashboardScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
-              {todo.dueDate && (
-                  <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Due: {new Date(todo.dueDate).toLocaleDateString()}
-                  </Text>
-              )}
               {renderPeople(todo.people)}
             </View>
-          ))
+            );
+          })
         ) : (
-          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
-            <Text className={`text-gray-400 text-center`}>No tasks due soon</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Info (time-bounded context) */}
-      <View className="mb-6">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Info
-          </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Todos' as never, { initialSegment: 'info' } as never)}>
-            <Text className="text-blue-500 font-semibold">See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator />
-        ) : todayInfos.length > 0 ? (
-          todayInfos.map((info, index) => (
-            <View
-              key={index}
-              className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-4 mb-3 rounded-xl border-l-4 shadow-sm`}
-              style={{ borderLeftColor: '#60A5FA' }}
-            >
-              <View className="flex-row items-start justify-between gap-3">
-                <View className="flex-1">
-                  <Text className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {info.title}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => archiveItem(info.id)}
-                  className={`${isDark ? 'bg-gray-700' : 'bg-gray-200'} px-3 py-2 rounded-xl`}
-                >
-                  <Text className={`${isDark ? 'text-gray-200' : 'text-gray-800'} font-bold text-xs`}>Archive</Text>
-                </TouchableOpacity>
-              </View>
-              {info.expiresAt && (
-                <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Expires: {new Date(info.expiresAt).toLocaleDateString()}
+          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl`}>
+            <Text className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-center font-semibold mb-2`}>
+              No tasks due today
+            </Text>
+            {upcomingTodos.length > 0 && (
+              <View className="mt-4">
+                <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm font-semibold mb-2`}>
+                  Upcoming:
                 </Text>
-              )}
-              {renderPeople(info.people)}
-            </View>
-          ))
-        ) : (
-          <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl items-center`}>
-            <Text className={`text-gray-400 text-center`}>No active info right now</Text>
+                {upcomingTodos.slice(0, 3).map((todo, index) => (
+                  <View key={index} className="mb-2">
+                    <Text className={`${isDark ? 'text-gray-300' : 'text-gray-800'} text-sm`}>
+                      ✅ {todo.title} • {todo.dueDate ? new Date(todo.dueDate).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'No due date'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         )}
       </View>

@@ -52,6 +52,50 @@ echo "   Calculated versionCode: $VERSION_CODE"
 echo "   Calculated versionName: $NEW_VERSION"
 echo ""
 
+# Step 3.5: Force production backend for release build, then restore afterwards
+ENV_TS_FILE="$FRONTEND_DIR/src/utils/env.ts"
+if [ -f "$ENV_TS_FILE" ]; then
+    ORIGINAL_FORCE_PRODUCTION=$(ENV_TS_FILE="$ENV_TS_FILE" node -e "
+const fs = require('fs');
+const s = fs.readFileSync(process.env.ENV_TS_FILE, 'utf8');
+const m = s.match(/const\\s+FORCE_PRODUCTION\\s*=\\s*(true|false)\\s*;/);
+if (!m) process.exit(2);
+process.stdout.write(m[1]);
+")
+    if [ $? -ne 0 ] || [ -z "${ORIGINAL_FORCE_PRODUCTION:-}" ]; then
+        echo "⚠️  Could not parse FORCE_PRODUCTION from $ENV_TS_FILE; skipping toggle."
+    else
+
+    restore_force_flag() {
+        ENV_TS_FILE="$ENV_TS_FILE" ORIG="$ORIGINAL_FORCE_PRODUCTION" node -e "
+const fs = require('fs');
+const file = process.env.ENV_TS_FILE;
+let s = fs.readFileSync(file, 'utf8');
+const re = /const\\s+FORCE_PRODUCTION\\s*=\\s*(true|false)\\s*;/;
+if (!re.test(s)) process.exit(2);
+s = s.replace(re, 'const FORCE_PRODUCTION = ' + process.env.ORIG + ';');
+fs.writeFileSync(file, s);
+" || true
+    }
+
+    # Always restore on exit (success or failure)
+    trap restore_force_flag EXIT
+
+    echo "🔁 Forcing production backend for this release build (FORCE_PRODUCTION=true)..."
+    ENV_TS_FILE="$ENV_TS_FILE" node -e "
+const fs = require('fs');
+const file = process.env.ENV_TS_FILE;
+let s = fs.readFileSync(file, 'utf8');
+const re = /const\\s+FORCE_PRODUCTION\\s*=\\s*(true|false)\\s*;/;
+if (!re.test(s)) process.exit(2);
+s = s.replace(re, 'const FORCE_PRODUCTION = true;');
+fs.writeFileSync(file, s);
+" || true
+    fi
+else
+    echo "⚠️  Could not find $ENV_TS_FILE; skipping FORCE_PRODUCTION toggle."
+fi
+
 # Signing defaults (new app id: com.organizel.app)
 # You can override these via env vars:
 #   RELEASE_STORE_PASSWORD, RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS
@@ -155,9 +199,12 @@ if ! grep -q "signingConfigs.release" "$GRADLE_FILE"; then
             /^    }/ i\
         release {\
             storeFile file('\''release.keystore'\'')\
-            storePassword releaseStorePassword\
-            keyAlias releaseKeyAlias\
-            keyPassword releaseKeyPassword\
+            def sp = (project.findProperty("RELEASE_STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD")) ?: "tossit123"\
+            def ka = (project.findProperty("RELEASE_KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS")) ?: "release"\
+            def kp = (project.findProperty("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD")) ?: sp\
+            storePassword = sp\
+            keyAlias = ka\
+            keyPassword = kp\
         }
         }' "$GRADLE_FILE"
     else
@@ -165,32 +212,31 @@ if ! grep -q "signingConfigs.release" "$GRADLE_FILE"; then
             /^    }/ i\
         release {\
             storeFile file('\''release.keystore'\'')\
-            storePassword releaseStorePassword\
-            keyAlias releaseKeyAlias\
-            keyPassword releaseKeyPassword\
+            def sp = (project.findProperty("RELEASE_STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD")) ?: "tossit123"\
+            def ka = (project.findProperty("RELEASE_KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS")) ?: "release"\
+            def kp = (project.findProperty("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD")) ?: sp\
+            storePassword = sp\
+            keyAlias = ka\
+            keyPassword = kp\
         }
         }' "$GRADLE_FILE"
     fi
 fi
 
 # Update release buildType to use release signing config
-if grep -q "signingConfig signingConfigs.debug" "$GRADLE_FILE" && grep -q "buildTypes" "$GRADLE_FILE"; then
-    echo "   Updating release buildType to use release signing..."
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' '/release {/,/signingConfig signingConfigs.debug/s|signingConfig signingConfigs.debug|signingConfig signingConfigs.release|' "$GRADLE_FILE"
-    else
-        sed -i '/release {/,/signingConfig signingConfigs.debug/s|signingConfig signingConfigs.debug|signingConfig signingConfigs.release|' "$GRADLE_FILE"
-    fi
+echo "   Ensuring release buildType uses release signing..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' '/release {/,/}/ s|signingConfig signingConfigs\.debug|signingConfig signingConfigs.release|g' "$GRADLE_FILE"
+else
+    sed -i '/release {/,/}/ s|signingConfig signingConfigs\.debug|signingConfig signingConfigs.release|g' "$GRADLE_FILE"
 fi
 
 # Ensure debug buildType uses debug signing (fix if accidentally changed)
-if grep -q "debug.*signingConfig signingConfigs.release" "$GRADLE_FILE"; then
-    echo "   Fixing debug buildType to use debug signing..."
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' '/debug {/,/signingConfig signingConfigs.release/s|signingConfig signingConfigs.release|signingConfig signingConfigs.debug|' "$GRADLE_FILE"
-    else
-        sed -i '/debug {/,/signingConfig signingConfigs.release/s|signingConfig signingConfigs.release|signingConfig signingConfigs.debug|' "$GRADLE_FILE"
-    fi
+echo "   Ensuring debug buildType uses debug signing..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' '/debug {/,/}/ s|signingConfig signingConfigs\.release|signingConfig signingConfigs.debug|g' "$GRADLE_FILE"
+else
+    sed -i '/debug {/,/}/ s|signingConfig signingConfigs\.release|signingConfig signingConfigs.debug|g' "$GRADLE_FILE"
 fi
 
 # Step 10: Ensure Gradle task removes camera and audio permissions from merged manifest

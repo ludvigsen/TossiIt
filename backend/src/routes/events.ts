@@ -12,9 +12,29 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         return;
     }
 
+    const now = new Date();
+    const filter = req.query.filter as string | undefined; // 'coming' or 'past'
+    
+    const where: any = { userId };
+    
+    if (filter === 'coming') {
+      where.startTime = { gte: now };
+    } else if (filter === 'past') {
+      where.startTime = { lt: now };
+    }
+    // If no filter, return all events
+
     const events = await prisma.event.findMany({
-      where: { userId },
-      orderBy: { startTime: 'asc' }
+      where,
+      include: {
+        originDump: {
+          select: { id: true, contentText: true, mediaUrl: true, category: true }
+        },
+        people: { select: { id: true, name: true, relationship: true } }
+      },
+      orderBy: filter === 'past' 
+        ? { startTime: 'desc' } // Most recent first for past events
+        : { startTime: 'asc' }  // Soonest first for coming events
     });
     res.json(events);
   } catch (error) {

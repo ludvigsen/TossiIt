@@ -22,17 +22,12 @@ router.get('/:personId', authenticate, async (req: Request, res: Response) => {
 
     await enforceArchiveRules(userId);
 
-    const [person, todos, infos, events, inbox, dumps] = await Promise.all([
+    const [person, todos, events, inbox, dumps] = await Promise.all([
       prisma.person.findFirst({ where: { id: personId, userId } }),
       prisma.actionableItem.findMany({
-        where: { userId, kind: 'todo', archivedAt: null, completed: false, people: { some: { id: personId } } },
+        where: { userId, archivedAt: null, completed: false, people: { some: { id: personId } } },
         include: { people: true },
         orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
-      }),
-      prisma.actionableItem.findMany({
-        where: { userId, kind: 'info', archivedAt: null, people: { some: { id: personId } } },
-        include: { people: true },
-        orderBy: [{ expiresAt: 'asc' }, { createdAt: 'desc' }],
       }),
       prisma.event.findMany({
         where: {
@@ -61,7 +56,7 @@ router.get('/:personId', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    res.json({ person, todos, infos, events, inbox, dumps });
+    res.json({ person, todos, events, inbox, dumps });
   } catch (error) {
     console.error('Error fetching person overview:', error);
     res.status(500).json({ error: 'Internal server error' });
